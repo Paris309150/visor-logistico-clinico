@@ -1,0 +1,28 @@
+<div id="modal-transferencia" class="modal-overlay">
+    <div class="modal-card" style="background:white; border-radius:16px; width:450px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+        <h3 class="font-bold mb-16"><i class="ph ph-arrows-left-right text-primary"></i> Transferencia de Stock</h3>
+        <form id="form-transferencia">
+            <div class="form-group">
+                <label class="form-label">Bodega Origen</label>
+                <input type="text" id="transfer-from-name" class="form-control" readonly>
+                <input type="hidden" id="transfer-from-id">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Insumo a Mover</label>
+                <select id="transfer-insumo-id" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bodega Destino</label>
+                <select id="transfer-to-id" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cantidad</label>
+                <input type="number" id="transfer-qty" class="form-control" value="1" min="1" required>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+                <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Confirmar Traspaso</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,2618 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Logístico Clínico</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="style.css?v=2.1-predictive">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+
+<body>
+    <!-- ESTILOS EXCLUSIVOS DE LOGIN -->
+    <style>
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Se oculta la app por defecto hasta validar Auth */
+        .app-container {
+            display: none;
+        }
+    </style>
+
+    <!-- VISTA DE LOGIN -->
+    <div id="login-view" class="login-overlay">
+        <div class="login-card">
+            <div class="sidebar-logo" style="justify-content:center; margin-bottom:32px;">
+                <div class="sidebar-logo-text" style="color:var(--primary); font-size:32px;">Visor</div>
+                <div class="sidebar-subtitle" style="color:var(--text-muted);">LOGÍSTICO CLÍNICO</div>
+            </div>
+            <form id="form-login">
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label class="form-label" for="login-email">Correo Institucional</label>
+                    <input type="email" class="form-control" id="login-email" required
+                        placeholder="usuario@clinica.com">
+                </div>
+                <div class="form-group" style="margin-bottom:24px;">
+                    <label class="form-label" for="login-pwd">Contraseña Asignada</label>
+                    <div style="position: relative;">
+                        <input type="password" class="form-control" id="login-pwd" required placeholder="••••••••"
+                            style="padding-right: 40px;">
+                        <button type="button" id="toggle-pwd-btn"
+                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; display:flex;">
+                            <i class="ph ph-eye" style="font-size: 20px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-large"
+                    style="width:100%; justify-content:center; margin-bottom: 16px;">
+                    ACREDITAR IDENTIDAD <i class="ph-bold ph-arrow-right"></i>
+                </button>
+                <div style="text-align: center;">
+                    <a href="#" id="forgot-pwd-link"
+                        style="color: var(--primary); font-size: 13px; text-decoration: none; font-weight: 600;">¿Olvidó
+                        su contraseña?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="app-container" id="main-app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-text">Visor</div>
+                    <div class="sidebar-subtitle">LOGÍSTICO CLÍNICO</div>
+                </div>
+            </div>
+
+            <div class="sidebar-menu-wrapper">
+                <div class="sidebar-category">VISOR LOGÍSTICO</div>
+                <div class="sidebar-box">
+                    <a href="#" class="menu-item active" data-target="view-panel">
+                        <i class="ph ph-squares-four"></i>Panel de Control
+                    </a>
+                    <a href="#" class="menu-item normal" data-target="view-inventario">
+                        <i class="ph ph-package"></i>Inventario
+                    </a>
+                    <a href="#" class="menu-item normal" data-target="view-movimientos">
+                        <i class="ph ph-arrows-left-right"></i>Ingresos
+                    </a>
+                    <a href="#" class="menu-item normal" data-target="view-historial">
+                        <i class="ph ph-clock-counter-clockwise"></i>Historial
+                    </a>
+                    <a href="#" class="menu-item normal" data-target="view-ajustes">
+                        <i class="ph ph-sliders"></i>Ajustes de Stock
+                    </a>
+                    <a href="#" class="menu-item normal" data-target="view-transferencias">
+                        <i class="ph ph-truck"></i>Transferencias
+                    </a>
+                    <a href="#" class="menu-item normal" data-target="view-bandejas">
+                        <i class="ph ph-briefcase-medical"></i>Bandejas de Turno
+                    </a>
+                </div>
+
+                <div class="sidebar-category" id="cat-abastecimiento">ABASTECIMIENTO</div>
+                <div class="sidebar-box">
+                    <a href="#" class="menu-item normal" data-target="view-compras">
+                        <i class="ph ph-shopping-cart"></i>Gestión de Compras
+                    </a>
+                    <a href="#" class="menu-item normal admin-only" data-target="view-informes">
+                        <i class="ph ph-chart-bar"></i>Informes
+                    </a>
+                    <a href="#" class="menu-item normal admin-only" data-target="view-bodegas">
+                        <i class="ph ph-buildings"></i>Bodegas
+                    </a>
+                    <a href="#" class="menu-item normal admin-only" data-target="view-usuarios">
+                        <i class="ph ph-users"></i>Usuarios
+                    </a>
+                </div>
+
+
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="#" class="menu-item normal admin-only" data-target="view-configuracion" id="menu-config">
+                    <i class="ph ph-gear"></i>Configuración
+                </a>
+                <a href="#" class="menu-item normal danger"><i class="ph ph-sign-out"></i>Salir</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div class="topbar-title">Visor Logístico</div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="status-badge">
+                        <i class="ph ph-cloud-check"></i>Nube actualizada
+                    </div>
+                    <button class="btn btn-icon"><i class="ph ph-bell"></i></button>
+                    <button class="btn btn-icon"><i class="ph ph-question"></i></button>
+
+                    <div class="user-profile" id="btn-user-profile" style="cursor: pointer;" title="Mi Perfil">
+                        <div class="user-text">
+                            <span class="user-name" id="ui-user-role-display">Rol No Definido</span>
+                            <span class="user-role" id="header-center-name">Visor Logístico Clínico</span>
+                        </div>
+                        <div class="user-avatar"><i class="ph-fill ph-user"></i></div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-container">
+
+                <!-- VIEW 1: Panel de Control -->
+                <section id="view-panel" class="view-section active">
+                    <div class="page-header">
+                        <div class="page-title">
+                            <h1>Panel de Control</h1>
+                            <p>Resumen ejecutivo del inventario clínico y alertas críticas.</p>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            <select id="dash-location-filter" class="form-control" style="width:auto; font-weight: 500;">
+                                <option value="all">📍 Todas las Ubicaciones</option>
+                                <option value="Bodega Central">🏢 Bodega Central</option>
+                                <option value="Bodega Transitoria">📦 Bodegas Transitorias</option>
+                                <option value="Bandeja">🚑 Bandejas en Turno</option>
+                            </select>
+                            <button class="btn btn-primary" id="btn-ia-analisis">
+                                <i class="ph-fill ph-sparkle"></i>Análisis IA
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon blue"><i class="ph ph-clipboard-text"></i></div>
+                                <span class="card-badge green">+2.4%</span>
+                            </div>
+                            <div class="card-title">INSUMOS ÚNICOS</div>
+                            <div class="card-value" id="dash-total-insumos">0</div>
+                        </div>
+                        <div class="card" id="card-stock-critico" style="cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="if(window.openCriticalStockModal) window.openCriticalStockModal();" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                            <div class="card-header">
+                                <div class="card-icon red"><i class="ph ph-warning"></i></div>
+                                <span class="card-badge red">ACCIÓN REQUERIDA</span>
+                            </div>
+                            <div class="card-title">STOCK CRÍTICO</div>
+                            <div class="card-value red" id="dash-critical-count">0</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon orange"><i class="ph ph-calendar-blank"></i></div>
+                                <span class="card-badge orange">REVISIÓN SEMANAL</span>
+                            </div>
+                            <div class="card-title">PRÓX. A VENCER</div>
+                            <div class="card-value orange" id="dash-expiring-count">0</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-icon green"><i class="ph ph-money"></i></div>
+                            </div>
+                            <div class="card-title">CAPITAL ESTIMADO</div>
+                            <div class="card-value" id="dash-capital-value">$0</div>
+                        </div>
+                    </div>
+
+                    <div class="tables-grid">
+                        <div class="data-table-card">
+                            <div class="data-table-header danger">
+                                <div class="table-header-title"><i class="ph-fill ph-warning-circle"></i>Urgencias
+                                    (Vencidos o &lt; 30 días)</div>
+                                <span class="header-badge">3 REPORTADOS</span>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>PRODUCTO / CATEGORÍA</th>
+                                            <th>LOTE</th>
+                                            <th>VENCIMIENTO</th>
+                                            <th>ACCIÓN</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer"><button type="button" id="btn-reporte-descarte" class="table-link"
+                                    style="background:none;border:none;cursor:pointer;">VER REPORTE DE DESCARTE</button>
+                            </div>
+                        </div>
+
+                        <div class="data-table-card">
+                            <div class="data-table-header warning">
+                                <div class="table-header-title"><i class="ph-fill ph-clock"></i>Precaución (1 a 6 meses)
+                                </div>
+                                <span class="header-badge">2 REPORTADOS</span>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>PRODUCTO / CATEGORÍA</th>
+                                            <th>LOTE</th>
+                                            <th>VENCIMIENTO</th>
+                                            <th>ACCIÓN</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer"><button type="button" id="btn-planificar-rotacion"
+                                    class="table-link warning"
+                                    style="background:none;border:none;cursor:pointer;">PLANIFICAR ROTACIÓN</button>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- END dashboard-container -->
+                </section>
+
+
+
+                <!-- VIEW: Inventario -->
+                <section id="view-inventario" class="view-section">
+                    <div class="page-header mb-16">
+                        <div class="page-title">
+                            <h1>Inventario</h1>
+                            <p>Control de existencias y búsqueda de suministros.</p>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            <!-- Buscador Manual -->
+                            <div class="search-input-wrapper" style="width: 350px;">
+                                <i class="ph ph-magnifying-glass"></i>
+                                <input type="text" id="inventory-search-input" class="form-control"
+                                    placeholder="Buscar medicamento por nombre o código...">
+                            </div>
+
+                            <!-- Filtros Avanzados -->
+                            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                                <select id="inv-filter-location" class="form-control" style="width:auto; font-weight:500;">
+                                    <option value="all">📍 Todas Ubicaciones</option>
+                                    <option value="Bodega Central">🏢 Bodega Central</option>
+                                    <option value="Bodega Transitoria">📦 Bodegas Transitorias</option>
+                                    <option value="Bandeja">🚑 Bandejas en Turno</option>
+                                </select>
+                                <select id="inv-filter-category" class="form-control" style="width:auto; font-weight:500;">
+                                    <option value="all">🏷️ Todas Categorías</option>
+                                    <option value="Insumo Médico">Insumos Médicos</option>
+                                    <option value="Medicamento">Medicamentos</option>
+                                </select>
+                                <select id="inv-filter-status" class="form-control" style="width:auto; font-weight:500;">
+                                    <option value="all">📈 Todos Estados</option>
+                                    <option value="critical">🔴 Stock Crítico</option>
+                                    <option value="normal">🟢 Stock Normal</option>
+                                </select>
+                            </div>
+
+                            <!-- Botón Resguardo (Solo Admin) -->
+                            <div id="admin-backup-container"
+                                style="display: none; align-items: center; gap: 8px; margin-left: auto;">
+                                <small class="text-muted"
+                                    style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--primary);">Acceso
+                                    exclusivo Administrador</small>
+                                <button class="btn btn-outline" id="btn-download-backup"
+                                    style="border-color: var(--primary); color: var(--primary);">
+                                    <i class="ph ph-cloud-arrow-down"></i> Descargar Resguardo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-table-card mb-24">
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>CÓDIGO</th>
+                                        <th>PRESENTACIÓN / INSUMO</th>
+                                        <th>PRECIO (UNIT.)</th>
+                                        <th>CANT. (FÍSICO)</th>
+                                        <th>VALOR (TOTAL)</th>
+                                        <th>VTO.</th>
+                                        <th>UBICACIÓN</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-table-body">
+                                    <!-- Skeletons Loader iniciales -->
+                                    <tr class="skeleton-row">
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-box"></div>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-badge"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-box"></div>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div style="display:flex;gap:8px">
+                                                <div class="skeleton skeleton-badge"></div>
+                                                <div class="skeleton skeleton-badge" style="width:36px"></div>
+                                                <div class="skeleton skeleton-badge" style="width:36px"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="skeleton-row">
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-box"></div>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-badge"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-box"></div>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div style="display:flex;gap:8px">
+                                                <div class="skeleton skeleton-badge"></div>
+                                                <div class="skeleton skeleton-badge" style="width:36px"></div>
+                                                <div class="skeleton skeleton-badge" style="width:36px"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="skeleton-row">
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-box"></div>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-badge"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div class="skeleton skeleton-box"></div>
+                                            <div class="skeleton skeleton-sm"></div>
+                                        </td>
+                                        <td>
+                                            <div style="display:flex;gap:8px">
+                                                <div class="skeleton skeleton-badge"></div>
+                                                <div class="skeleton skeleton-badge" style="width:36px"></div>
+                                                <div class="skeleton skeleton-badge" style="width:36px"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer flex-bet">
+                            <span class="text-muted text-sm" id="pagination-info">Mostrando página actual</span>
+                            <div class="pagination">
+                                <!-- Botones de paginación con ID -->
+                                <button class="btn page-btn" id="btn-prev-page" disabled><i
+                                        class="ph ph-caret-left"></i></button>
+                                <button class="btn page-btn active">1</button>
+                                <button class="btn page-btn" id="btn-next-page"><i
+                                        class="ph ph-caret-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-2-col-even" style="grid-template-columns: 2fr 1fr;">
+                        <div class="predictive-card" style="padding: 24px;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                                <i class="ph-fill ph-lightning" style="color: #60a5fa; font-size:24px;"></i>
+                                <h3 style="color:white; font-size:16px;">Optimización Inteligente</h3>
+                            </div>
+                            <p style="color:#cbd5e1; font-size:13px; line-height:1.5; margin-bottom:16px;">Basado en el
+                                historial de consumo de Urgencias, se recomienda aumentar el stock de <b
+                                    style="color:#60a5fa;">Suero Fisiológico</b> en un 15% para el próximo trimestre.
+                            </p>
+                            <button class="btn btn-primary" onclick="window.handleAnalisisIA(this)"
+                                style="background-color: white; color: var(--text-main);">Ver Análisis
+                                Predictivo</button>
+                        </div>
+                        <div class="card" style="background-color: #f8fafc;">
+                            <h4
+                                style="font-size:12px; color:var(--text-muted); font-weight:700; margin-bottom:16px; text-transform:uppercase;">
+                                Actividad Reciente</h4>
+                            <div class="activity-list" style="margin-top:0;">
+                                <div class="activity-item">
+                                    <div class="dot-indicator green-dot"></div>
+                                    <div>
+                                        <div class="item-name text-sm">Ingreso de Compra #OC-442</div>
+                                        <div class="item-category" style="font-size:10px;">Hace 12 min por J. Herrera
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="dot-indicator orange-dot"></div>
+                                    <div>
+                                        <div class="item-name text-sm">Ajuste de Stock: Amoxicilina</div>
+                                        <div class="item-category" style="font-size:10px;">Hace 1 hora por S. Méndez
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="dot-indicator blue-dot"></div>
+                                    <div>
+                                        <div class="item-name text-sm">Exportación de Inventario PDF</div>
+                                        <div class="item-category" style="font-size:10px;">Hace 3 horas por Admin</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            </section>
+
+            <!-- VIEW: Movimientos -->
+            <section id="view-movimientos" class="view-section">
+                <div class="dashboard-container">
+                    <div class="page-header">
+                        <div class="page-title">
+                            <h1>Registro de Ingresos</h1>
+                            <p>Recepción de suministros de proveedores e ingreso manual al sistema.</p>
+                        </div>
+                        <div style="display:flex; gap:12px; align-items:center;">
+                            <button class="btn btn-outline" id="btn-download-template"
+                                title="Descargar Planilla Oficial SAR">
+                                <i class="ph ph-file-arrow-down"></i> Descargar Plantilla
+                            </button>
+                            <button class="btn btn-primary" id="btn-trigger-upload">
+                                <i class="ph ph-file-arrow-up"></i> Carga Masiva (Excel)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pestañas de Navegación Superiores -->
+                    <div style="display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #e9ecef; padding-bottom: 15px;">
+                        <button id="tab-ingreso-registro" class="btn btn-primary" style="font-weight: 500; font-size: 1.05em; padding: 10px 25px;">
+                            <i class="ph ph-plus-circle" style="font-size: 1.2em; vertical-align: middle; margin-right: 8px;"></i> Nuevo Registro
+                        </button>
+                        <button id="tab-ingreso-historial" class="btn btn-outline" style="border-color: var(--primary); color: var(--primary); font-weight: 500; font-size: 1.05em; padding: 10px 25px;" onclick="document.querySelector('.menu-item[data-target=\'view-historial\']').click();">
+                            <i class="ph ph-list-dashes" style="font-size: 1.2em; vertical-align: middle; margin-right: 8px;"></i> Historial Completo
+                        </button>
+                    </div>
+
+                    <div class="card form-card mb-24">
+                        <div class="barcode-scanner-box">
+                            <label class="section-label text-primary">ESCANEO RÁPIDO (PISTOLA)</label>
+                            <div class="scan-input-group">
+                                <i class="ph ph-barcode"></i>
+                                <input type="text" placeholder="Escanee el código de barras del producto...">
+                                <span class="badge-gray">AUTO-DETECCIÓN</span>
+                            </div>
+                        </div>
+
+                        <form id="form-movimiento" data-target="#modal-movimiento" data-modal="true">
+                            <div class="details-section">
+                                <label class="section-label"><i class="ph ph-clipboard-text"></i> DETALLES DEL
+                                    PRODUCTO</label>
+                                <div class="grid-3-col">
+                                    <div class="form-group">
+                                        <label class="form-label" for="ingreso-insumo">INSUMO SELECCIONADO</label>
+                                        <div style="display:flex; gap:8px;">
+                                            <input type="text" id="ingreso-insumo" name="articleName" list="lista-insumos" class="form-control" autocomplete="off" placeholder="Escriba o seleccione un insumo..." required style="flex:1">
+                                            <button type="button" class="btn btn-outline" id="btn-scan-barcode" title="Escanear Código de Barras / QR" style="padding: 0 12px;"><i class="ph ph-barcode" style="font-size:20px;"></i></button>
+                                        </div>
+                                        <datalist id="lista-insumos"></datalist>
+                                        
+                                        <!-- Contenedor del Escáner (Oculto por defecto) -->
+                                        <div id="scanner-container" style="display:none; margin-top:12px; border: 2px dashed var(--primary); border-radius: 8px; overflow: hidden; background: #000;">
+                                            <div id="reader" style="width: 100%;"></div>
+                                            <div style="padding: 8px; text-align:center; background: var(--surface);">
+                                                <button type="button" class="btn btn-outline" id="btn-close-scanner" style="color:var(--danger); border-color:var(--danger); width:100%;">Cancelar Escáner</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="movimiento-lote">LOTE</label>
+                                        <input type="text" class="form-control" name="batch" id="movimiento-lote"
+                                            placeholder="Ej: L-2451-B" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="movimiento-fechaVto">FECHA VENCIMIENTO</label>
+                                        <input type="date" class="form-control" name="expirationDate"
+                                            id="movimiento-fechaVto" required>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:24px; align-items:center;">
+                                    <div class="form-group" style="width:150px;">
+                                        <label class="form-label" for="movimiento-cantidad">CANTIDAD</label>
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <input type="number" class="form-control" name="quantity"
+                                                id="movimiento-cantidad" value="1" min="1" step="1" required>
+                                            <span
+                                                style="font-size:12px; color:var(--text-muted); font-weight:600;">UNIDADES</span>
+                                        </div>
+                                        <div id="lbl-simulacion-stock" style="font-size:11px; margin-top:5px; color:var(--primary); font-weight:bold;"></div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="details-section">
+                                <label class="section-label"><i class="ph ph-truck"></i> INFORMACIÓN COMERCIAL Y
+                                    DESTINO</label>
+                                <div class="grid-3-col">
+                                    <div class="form-group">
+                                        <label class="form-label" for="movimiento-proveedor">PROVEEDOR</label>
+                                        <input type="text" list="list-proveedores" class="form-control" name="providerId"
+                                            id="movimiento-proveedor" placeholder="Escriba o seleccione..." required>
+                                        <datalist id="list-proveedores">
+                                            <option value="Droguería Central">
+                                            <option value="MediCorp Global S.A.">
+                                            <option value="Elsa Romo Aravena">
+                                            <option value="PharmaSur Ltda.">
+                                        </datalist>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="movimiento-tipoCompra">TIPO DE COMPRA</label>
+                                        <input type="text" list="list-compras" class="form-control" name="purchaseType"
+                                            id="movimiento-tipoCompra" placeholder="Ej: Compra Directa" required>
+                                        <datalist id="list-compras">
+                                            <option value="Compra Directa">
+                                            <option value="Licitación Pública">
+                                            <option value="Trato Directo Urgencia">
+                                            <option value="Cenabast">
+                                        </datalist>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="movimiento-destino">DESTINO</label>
+                                        <select class="form-control" name="destinationId" id="movimiento-destino" required>
+                                            <option value="" disabled selected>Cargando destinos...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="grid-2-col-even mt-16">
+                                    <div class="form-group">
+                                        <label class="form-label" for="movimiento-documento">DOC. RESPALDO (OC /
+                                            FACTURA)</label>
+                                        <div class="scan-input-group doc-input">
+                                            <i class="ph ph-file-text"></i>
+                                            <input type="file" name="supportDocument" id="ingreso-archivo-respaldo" class="form-control" accept=".pdf, image/png, image/jpeg" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="movimiento-observaciones">OBSERVACIONES</label>
+                                        <input type="text" class="form-control" name="observations"
+                                            id="movimiento-observaciones"
+                                            placeholder="Notas adicionales sobre el movimiento...">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Tipo de movimiento para captura simple, asume 'entrada' por defecto en este tab -->
+                            <input type="hidden" name="movementType" id="movimiento-tipo" value="entrada">
+                            <div class="form-actions-footer">
+                                <p>Al confirmar, el stock se actualizará automáticamente en todos los módulos dependientes y
+                                    se generará un registro en el historial.</p>
+                                <button type="submit" class="btn btn-primary btn-large" data-target="#modal-movimiento"
+                                    data-modal="true">CONFIRMAR INGRESO <i class="ph ph-check-circle"></i></button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="grid-2-col-even mt-24">
+                        <div class="card">
+                            <h4 style="font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:16px;">
+                                ÚLTIMOS REGISTRADOS</h4>
+                            <div id="lista-ultimos-registros" style="display:flex; flex-direction:column; gap:20px; margin-bottom:24px;">
+                                <!-- Inyectado dinámicamente -->
+                            </div>
+                            <a href="#" class="table-link" onclick="document.querySelector('.menu-item[data-target=\'view-historial\']').click();">Ver historial completo &rarr;</a>
+                        </div>
+                        <div class="metric-card">
+                            <p style="font-size:11px; font-weight:700; opacity:0.8; margin-bottom:16px;">MÉTRICA DEL TURNO
+                            </p>
+                            <h2 style="font-size:42px; font-weight:700; margin-bottom:8px;"><span id="metrica-ingresos-hoy">0</span></h2>
+                            <p style="font-size:13px; line-height:1.4; opacity:0.9; margin-bottom:32px; max-width:250px;">
+                                Artículos gestionados en las últimas 8 horas por el equipo logístico.</p>
+                            <div>
+                                <div
+                                    style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; margin-bottom:8px;">
+                                    <span>META DIARIA</span></div>
+                                <div
+                                    style="height:6px; background:rgba(255,255,255,0.3); border-radius:3px; overflow:hidden;">
+                                    <div style="width:85%; height:100%; background:white; border-radius:3px;"></div>
+                                </div>
+                            </div>
+                            <i class="ph-fill ph-sparkles"
+                                style="position:absolute; right:16px; bottom:16px; font-size:72px; opacity:0.2;"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: Bandejas de Turno -->
+            <section id="view-bandejas" class="view-section" style="display:none;">
+    <div class="dashboard-container">
+        <!-- Cabecera Limpia y Profesional -->
+        <div style="margin-bottom: 25px;">
+            <h2 style="margin-bottom: 5px; color: #212529;"><i class="ph ph-briefcase-medical" style="margin-right: 10px;"></i>Gestión de Bandejas de Turno</h2>
+            <p style="color: #6c757d; margin-bottom: 0;">Creación, asignación y recepción de bandejas clínicas (Ciclo Cerrado).</p>
+        </div>
+
+        <!-- Pestañas de Navegación Superiores -->
+        <div style="display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #e9ecef; padding-bottom: 15px;">
+            <button id="tab-crear-bandeja" class="btn btn-primary" style="font-weight: 500; font-size: 1.05em; padding: 10px 25px;">
+                <i class="ph ph-plus-circle" style="font-size: 1.2em; vertical-align: middle; margin-right: 8px;"></i> Despachar Nueva Bandeja
+            </button>
+            <button id="tab-mis-bandejas" class="btn btn-outline-primary" style="font-weight: 500; font-size: 1.05em; padding: 10px 25px;">
+                <i class="ph ph-list-checks" style="font-size: 1.2em; vertical-align: middle; margin-right: 8px;"></i> Mis Bandejas Activas
+            </button>
+            <button id="tab-historial-bandejas" class="btn btn-outline-primary" style="font-weight: 500; font-size: 1.05em; padding: 10px 25px;">
+                <i class="ph ph-clock-counter-clockwise" style="font-size: 1.2em; vertical-align: middle; margin-right: 8px;"></i> Historial de Bandejas
+            </button>
+            <button id="tab-gestionar-packs" class="btn btn-outline-primary" style="font-weight: 500; font-size: 1.05em; padding: 10px 25px;">
+                <i class="ph ph-folder" style="font-size: 1.2em; vertical-align: middle; margin-right: 8px;"></i> Administrar Packs
+            </button>
+        </div>
+
+        <!-- PANEL 1: WIZARD DE CREACIÓN -->
+        <div id="panel-crear-bandeja" style="background: white; padding: 35px; border-radius: 10px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            
+            <!-- Paso 1: Selectores base -->
+            <div style="display: flex; gap: 25px; margin-bottom: 30px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 220px;">
+                    <label style="font-weight: 600; color: #495057; display: block; margin-bottom: 8px; font-size: 0.95em;">1. Bandeja a Cargar</label>
+                    <select id="select-numero-bandeja" class="form-control" style="font-size: 1em; padding: 12px; border-radius: 6px;">
+                        <option value="">Seleccione Bandeja...</option>
+                        <option value="Bandeja 1">Bandeja 1</option>
+                        <option value="Bandeja 2">Bandeja 2</option>
+                        <option value="Bandeja 3">Bandeja 3</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 220px;">
+                    <label style="font-weight: 600; color: #495057; display: block; margin-bottom: 8px; font-size: 0.95em;">2. Set de Fármacos (Kit)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="select-tipo-plantilla" class="form-control" style="font-size: 1em; padding: 12px; border-radius: 6px; flex: 1;">
+                            <option value="">Cargando plantillas...</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1.5; min-width: 280px;">
+                    <label style="font-weight: 600; color: #495057; display: block; margin-bottom: 8px; font-size: 0.95em;">3. Asignar a (Enfermero)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="select-enfermero-asignado" class="form-control" style="font-size: 1em; padding: 12px; border-radius: 6px; flex: 1;">
+                            <option value="">Cargando enfermeros...</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-primary" id="btn-crear-reemplazo-modal" style="padding: 0 15px;" title="Crear enfermero temporal">
+                            <i class="ph ph-user-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paso 2: La Tabla (Oculta hasta seleccionar plantilla) -->
+            <div id="contenedor-detalle-bandeja" style="display: none; background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 30px; margin-top: 20px;">
+                
+                <div id="alerta-edicion-bandeja" class="alert alert-warning" style="display: none; font-weight: bold; font-size: 1.1em;">
+                    <i class="ph ph-pencil-simple"></i> MODO EDICIÓN: Estás modificando una bandeja existente.
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e9ecef; padding-bottom: 15px;">
+                    <h3 style="margin: 0; color: #212529; font-size: 1.4em; font-weight: 600;">Revisión y Edición de la Bandeja</h3>
+                    <button id="btn-agregar-extra" class="btn btn-outline-success" style="font-weight: 500; border-width: 2px;">
+                        <i class="ph ph-plus" style="font-weight: bold; margin-right: 5px;"></i> Agregar Fármaco
+                    </button>
+                </div>
+                
+                <div class="table-responsive" style="max-height: 55vh; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px;">
+                    <table class="table table-hover mb-0" style="background: white;">
+                        <thead style="position: sticky; top: 0; background: #f8f9fa; border-bottom: 2px solid #dee2e6; z-index: 1;">
+                            <tr>
+                                <th style="padding: 15px; color: #495057;">Fármaco / Insumo</th>
+                                <th style="width: 120px; text-align: center; padding: 15px; color: #495057;">Cantidad</th>
+                                <th style="padding: 15px; color: #495057;">Observación Inicial</th>
+                                <th style="width: 80px; text-align: center; padding: 15px; color: #495057;">Borrar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-detalle-bandeja-body">
+                            <!-- Se llena con JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: right;">
+                    <button id="btn-pre-despacho" class="btn btn-primary btn-lg" style="font-weight: bold; padding: 15px 40px; font-size: 1.2em; box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);">
+                        📦 Confirmar y Generar Despacho
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL 2: MIS BANDEJAS ACTIVAS -->
+        <div id="panel-mis-bandejas" style="display: none; background: white; padding: 35px; border-radius: 10px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="margin: 0; color: #212529;"><i class="ph ph-list-dashes" style="margin-right: 10px;"></i>Mis Bandejas Activas</h3>
+            </div>
+            
+            <div id="lista-mis-bandejas" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+                <!-- Tarjetas de bandejas renderizadas dinámicamente -->
+            </div>
+        </div>
+
+        <!-- PANEL 3: HISTORIAL DE BANDEJAS -->
+        <div id="panel-historial-bandejas" style="display: none; background: white; padding: 35px; border-radius: 10px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="margin: 0; color: #212529;"><i class="ph ph-clock-counter-clockwise" style="margin-right: 10px;"></i>Historial de Bandejas y Recepciones</h3>
+            </div>
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 25px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-size: 0.85em; font-weight: bold; color: #495057;">Búsqueda por Tracking o ID Físico</label>
+                    <div class="search-input-wrapper" style="position: relative;">
+                        <i class="ph ph-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                        <input type="text" id="input-search-historial" class="form-control" placeholder="Ej: BAN-1406-0345..." style="padding-left: 35px;" oninput="window.renderHistorialBandejas()">
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-size: 0.85em; font-weight: bold; color: #495057;">Filtro de Tiempo</label>
+                    <select id="select-filtro-tiempo-historial" class="form-control" onchange="window.renderHistorialBandejas()">
+                        <option value="all">Mostrar Todo el Histórico</option>
+                        <option value="30days" selected>Últimos 30 días</option>
+                        <option value="7days">Últimos 7 días</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="lista-historial-bandejas" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+                <!-- Tarjetas históricas renderizadas dinámicamente -->
+            </div>
+        </div>
+        <div id="panel-gestionar-packs" style="display: none; background: white; padding: 35px; border-radius: 10px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 style="margin: 0; color: #212529;"><i class="ph ph-folder-star" style="margin-right: 10px;"></i>Administración de Packs de Fármacos</h3>
+            </div>
+            
+            <!-- Vista de Lista de Plantillas -->
+            <div id="vista-lista-plantillas">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <p class="text-muted">Administra los kits o plantillas predefinidas para armar bandejas más rápido.</p>
+                    <button class="btn btn-success" id="btn-nueva-plantilla"><i class="ph ph-plus"></i> Crear Nueva Plantilla</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Pack</th>
+                                <th>Insumos</th>
+                                <th>Última Modificación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-lista-plantillas">
+                            <tr><td colspan="4" class="text-center">Cargando plantillas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vista Editor de Plantilla -->
+            <div id="vista-editar-plantilla" style="display: none;">
+                <input type="hidden" id="plantilla-id-actual">
+                <div class="form-group mb-24">
+                    <label style="font-weight: bold;">Nombre del Pack / Plantilla</label>
+                    <input type="text" id="plantilla-nombre-input" class="form-control" placeholder="Ej: Kit Estándar Urgencias">
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                    <h4 style="margin: 0;">Contenido de la Plantilla</h4>
+                    <div>
+                        <input type="file" id="input-excel-pack" accept=".xlsx, .xls" style="display: none;">
+                        <button class="btn btn-sm btn-outline-info" id="btn-descargar-base-pack"><i class="ph ph-download-simple"></i> Descargar Excel</button>
+                        <button class="btn btn-sm btn-outline-success" id="btn-subir-excel-pack" onclick="document.getElementById('input-excel-pack').click()"><i class="ph ph-upload-simple"></i> Subir Excel</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="plantilla-buscar-insumo" class="form-control" placeholder="Buscar fármaco/insumo..." list="plantillas-insumos-list" autocomplete="off" style="flex: 1;">
+                    <datalist id="plantillas-insumos-list"></datalist>
+                    <input type="number" id="plantilla-cantidad-insumo" class="form-control" placeholder="Cant." style="width: 80px;" min="1" value="1">
+                    <button class="btn btn-outline-primary" id="btn-add-insumo-plantilla"><i class="ph ph-plus"></i> Añadir</button>
+                </div>
+                
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px; margin-bottom: 20px;">
+                    <table class="table table-hover mb-0">
+                        <thead style="background: #f8f9fa; position: sticky; top: 0;">
+                            <tr>
+                                <th>Fármaco / Insumo</th>
+                                <th>Cantidad</th>
+                                <th style="width: 80px; text-align: center;">Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-detalle-plantilla-edit">
+                            <!-- Items de la plantilla -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                    <button class="btn btn-outline-secondary" id="btn-cancelar-edicion-plantilla">Cancelar</button>
+                    <button class="btn btn-primary" id="btn-guardar-plantilla"><i class="ph ph-floppy-disk"></i> Guardar Plantilla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RESUMEN DE DESPACHO -->
+    <div id="modal-resumen-bandeja" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 35px; border-radius: 12px; width: 650px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <h3 style="margin-top: 0; color: #0d6efd; border-bottom: 2px solid #e9ecef; padding-bottom: 15px;"><i class="ph ph-clipboard-text"></i> Resumen de Despacho</h3>
+            
+            <div style="margin-top: 20px; font-size: 1.15em; color: #333; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
+                <p style="margin-bottom: 8px;"><strong>Identificador:</strong> <span id="resumen-bandeja-id" style="color: #495057;"></span></p>
+                <p style="margin-bottom: 8px;"><strong>Plantilla Base:</strong> <span id="resumen-bandeja-plantilla" style="color: #495057;"></span></p>
+                <p style="margin-bottom: 0;"><strong>Asignado a:</strong> <span id="resumen-bandeja-correo" style="color: #0d6efd; font-weight: bold;"></span></p>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <p style="font-weight: bold; margin-bottom: 10px; font-size: 1.1em;">Detalle de Carga a Descontar:</p>
+                <div style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; background: white;">
+                    <ul id="resumen-bandeja-lista" style="margin: 0; padding-left: 20px; font-size: 1em; color: #495057;">
+                        </ul>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                <button class="btn btn-outline-secondary" onclick="document.getElementById('modal-resumen-bandeja').style.display='none'" style="font-weight: bold; padding: 12px 25px;">No, continuar editando</button>
+                <button id="btn-ejecutar-despacho-final" class="btn btn-success" style="font-weight: bold; padding: 12px 25px; font-size: 1.1em;">Sí, Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ELIMINAR INSUMO -->
+    <div id="modal-eliminar-insumo" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 8px; width: 450px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <h3 style="color: #dc3545; margin-top: 0;"><i class="ph ph-warning-circle"></i> Eliminar Fármaco</h3>
+            <p style="font-size: 1.1em; color: #495057; margin-top: 15px;">¿Está seguro que desea quitar <strong id="texto-insumo-eliminar">este insumo</strong> de la bandeja?</p>
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+                <button class="btn btn-secondary" onclick="document.getElementById('modal-eliminar-insumo').style.display='none'">Cancelar</button>
+                <button id="btn-confirmar-eliminacion" class="btn btn-danger" style="font-weight: bold;">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ANULAR BANDEJA -->
+    <div id="modal-anular-bandeja" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 8px; width: 450px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <h3 style="color: #dc3545; margin-top: 0;"><i class="ph ph-warning-circle"></i> Anular Bandeja</h3>
+            <p style="font-size: 1.1em; color: #495057; margin-top: 15px;">Por favor ingrese el motivo de anulación para esta bandeja:</p>
+            <input type="text" id="input-motivo-anulacion" class="form-control" placeholder="Motivo de anulación..." style="margin-top: 10px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn btn-secondary" onclick="document.getElementById('modal-anular-bandeja').style.display='none'">Cancelar</button>
+                <button id="btn-confirmar-anular-bandeja" class="btn btn-danger" style="font-weight: bold;">Sí, Anular Bandeja</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RECEPCIÓN OPERADOR -->
+    <div id="modal-recepcion-operador" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 35px; border-radius: 12px; width: 850px; max-width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <h3 style="color: #fd7e14; margin-top: 0; border-bottom: 2px solid #e9ecef; padding-bottom: 15px;"><i class="ph ph-check-square-offset"></i> Recepción y Cuadre de Bandeja</h3>
+            <p style="font-size: 1.1em; color: #495057; margin-top: 15px;">Ajuste las cantidades reales recibidas si difieren de lo reportado por la enfermera.</p>
+            
+            <div id="lista-medicamentos-recepcion-operador" style="margin-top: 20px;"></div>
+
+            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="document.getElementById('modal-recepcion-operador').style.display='none'" style="font-weight: bold; padding: 12px 25px;">Cancelar</button>
+                <button id="btn-guardar-recepcion-operador" class="btn btn-warning" style="font-weight: bold; padding: 12px 25px; font-size: 1.1em;"><i class="ph ph-floppy-disk"></i> Confirmar y Cuadrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CUADRATURA TURNO -->
+    <div id="modal-cuadratura-turno" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 35px; border-radius: 12px; width: 850px; max-width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <h3 style="color: #0d6efd; margin-top: 0; border-bottom: 2px solid #e9ecef; padding-bottom: 15px;"><i class="ph ph-file-xls"></i> Cuadratura de Turno (Cruce RAYEN)</h3>
+            
+            <p style="font-size: 1.1em; color: #495057; margin-top: 15px;">Suba el archivo Excel (Consolidado de Fármacos) descargado de RAYEN para realizar el cruce automático con la <strong><span id="cuadratura-bandeja-nombre"></span></strong>.</p>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px dashed #adb5bd; margin-bottom: 25px;">
+                <input type="file" id="input-excel-rayen" class="form-control" accept=".csv, .xlsx, .xls" style="font-size: 1.1em; padding: 10px;">
+            </div>
+            
+            <div id="contenedor-resultado-cruce" style="display: none;">
+                <h4 style="margin-top: 0; color: #212529;">Resultados del Arqueo</h4>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px;">
+                    <table class="table table-hover table-sm mb-0">
+                        <thead style="background: #f1f3f5; position: sticky; top: 0;">
+                            <tr>
+                                <th>Fármaco</th>
+                                <th style="text-align: center;">Uso VISOR</th>
+                                <th style="text-align: center;">Uso RAYEN</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th>Justificación (Si hay diferencia)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-cruce-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                <button class="btn btn-outline-secondary" onclick="document.getElementById('modal-cuadratura-turno').style.display='none'" style="font-weight: bold; padding: 10px 25px;">Cancelar</button>
+                <button id="btn-procesar-cierre-final" class="btn btn-success" disabled style="font-weight: bold; padding: 10px 25px;">✔️ Confirmar Cierre y Devolver a Bodega</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+            <!-- VIEW: Historial -->
+
+            <!-- VIEW: Ajustes -->
+            <section id="view-ajustes" class="view-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Ajustes Críticos de Inventario</h1>
+                        <p>Busque por nombre, lote, laboratorio o proveedor para ajustar inventario manualmente.</p>
+                    </div>
+                </div>
+                <div class="card" style="max-width: 800px; margin: 0 auto; padding: 30px; border: 3px solid #ffc107;">
+                    <input type="text" id="buscador-ajuste" class="form-control" placeholder="🔍 Buscar medicamento..." style="width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                    <select id="ajuste-insumo" class="form-control" size="6" style="width: 100%; margin-bottom: 15px; padding: 5px; font-family: monospace; border: 1px solid #ccc;"></select>
+                    <div style="display: flex; justify-content: space-around; background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #dee2e6;">
+                        <div style="text-align: center;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: bold;">STOCK ACTUAL</span>
+                            <span id="lbl-stock-actual" style="font-size: 1.8em; color: #333;">0</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <span style="display: block; font-size: 0.9em; color: #666; font-weight: bold;">NUEVO PROYECTADO</span>
+                            <span id="lbl-stock-proyectado" style="font-size: 1.8em; color: #007bff; font-weight: bold;">0</span>
+                        </div>
+                    </div>
+                    <label style="font-weight: bold; margin-bottom: 5px; display: block;">Cantidad a Ajustar (Use + o -):</label>
+                    <input type="number" id="ajuste-cantidad" class="form-control" placeholder="Ej: -10 (Merma) o 50 (Sobrante)" style="width: 100%; margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label style="font-weight: bold; margin-bottom: 5px; display: block;">Observación de Auditoría:</label>
+                    <textarea id="ajuste-justificacion" class="form-control" placeholder="Motivo detallado obligatorio..." style="width: 100%; margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; min-height: 80px;"></textarea>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn btn-warning" id="btn-ejecutar-ajuste" style="font-weight: bold;">Ejecutar Ajuste y Auditar</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-historial" class="view-section">
+                <div class="dashboard-container">
+                    <div class="page-header mb-16">
+                    <div class="page-title">
+                        <h1>Historial de Transacciones</h1>
+                    </div>
+                </div>
+
+                <div class="historial-toolbar">
+                    <div class="filters-group">
+                        <div class="search-input-wrapper">
+                            <i class="ph ph-magnifying-glass"></i>
+                            <input type="text" id="historial-search-input" class="form-control"
+                                placeholder="Buscar por producto u operador...">
+                        </div>
+                        <div class="search-input-wrapper date-picker" style="display:flex; align-items:center; padding-left:0; overflow:hidden;">
+                            <input type="date" id="historial-date-filter" class="form-control" title="Filtrar por fecha" style="padding-left:12px; border:none; background:transparent;">
+                            <button id="btn-clear-historial-date" class="btn text-danger" style="display:none; padding:0 12px; font-weight:bold; font-size:12px; border-left:1px solid var(--border-color); border-radius:0;" title="Borrar filtro y volver a Tiempo Real"><i class="ph ph-x"></i> LIMPIAR</button>
+                        </div>
+                        <button class="btn btn-primary admin-only" id="btn-export-historial-excel"><i
+                                class="ph ph-file-xls"></i> Excel</button>
+                        <button class="btn btn-outline admin-only" id="btn-export-historial-pdf"
+                            style="color:var(--danger); border-color:var(--danger);"><i class="ph ph-file-pdf"></i>
+                            PDF</button>
+                    </div>
+                    <div class="registros-hoy">
+                        <div class="rh-title">REGISTROS HOY</div>
+                        <div class="rh-value">0</div>
+                        <div class="rh-trend"><i class="ph ph-trend-up"></i> 12% más que ayer</div>
+                        <i class="ph ph-files rh-icon"></i>
+                    </div>
+                </div>
+
+                <div class="data-table-card mt-24">
+                    <div class="table-header-simple">
+                        <div class="dot-indicator green-dot" style="margin-right:8px;"></div>Transacciones en Tiempo
+                        Real
+                        <span class="timezone">ZONA HORARIA: GMT-3</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>FECHA/HORA</th>
+                                    <th>TIPO</th>
+                                    <th>PRODUCTO</th>
+                                    <th>LOTE / CANT.</th>
+                                    <th>ORIGEN / DESTINO</th>
+                                    <th>DOC. RESPALDO</th>
+                                    <th>ACCIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historial-table-body">
+                                <!-- Dinámico: Historial_Movimientos onSnapshot -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer flex-bet">
+                        <span class="text-muted text-sm" id="historial-loading-status">Cargando movimientos...</span>
+                        <div class="pagination">
+                            <button id="btn-load-more-history" class="btn btn-outline text-primary">Cargar Más Resultados <i class="ph ph-caret-down"></i></button>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </section>
+
+            <!-- VIEW: Informes -->
+            <section id="view-informes" class="view-section">
+                <div class="page-header mb-16">
+                    <div class="page-title">
+                        <h1>Informes Logísticos</h1>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+
+                        <button id="btn-export-informe-excel" class="btn btn-outline green-border admin-only"><i
+                                class="ph ph-file-xls"></i> Exportar Excel</button>
+                        <button id="btn-export-informe-pdf" class="btn btn-outline red-border admin-only"><i
+                                class="ph ph-file-pdf"></i> Exportar PDF</button>
+                        <button id="btn-plan-mitigacion-ia" class="btn btn-primary purple-bg"><i class="ph-fill ph-sparkle"></i> Plan de Mitigación
+                            IA</button>
+                    </div>
+                </div>
+
+                <div class="tab-links-container" id="informes-tabs">
+                    <a href="#" class="tab-link active" data-report="movimientos">Movimientos Diarios</a>
+                    <a href="#" class="tab-link" data-report="valorizado">Inventario Valorizado</a>
+                    <a href="#" class="tab-link" data-report="rotacion">Análisis Rotación</a>
+                    <a href="#" class="tab-link" data-report="vencimientos">Vencimientos</a>
+                </div>
+
+                <div class="cards-grid border-cards mb-24" style="grid-template-columns: repeat(5, 1fr);">
+                    <div class="card stat-card bc-green">
+                        <div class="card-title">TOTAL VALORIZADO</div>
+                        <div class="card-value" id="info-total-valor">--</div>
+                        <div class="stat-trend text-green"><i class="ph ph-trend-up"></i> Actualizado hoy</div>
+                    </div>
+                    <div class="card stat-card bc-red">
+                        <div class="card-title">STOCK CRÍTICO</div>
+                        <div class="card-value" id="info-stock-critico">--</div>
+                        <div class="stat-trend text-red"><i class="ph ph-warning"></i> Requiere reposición</div>
+                    </div>
+                    <div class="card stat-card bc-purple">
+                        <div class="card-title">ROTACIÓN PROMEDIO</div>
+                        <div class="card-value" id="info-rotacion-prom">--</div>
+                        <div class="stat-trend text-purple"><i class="ph ph-arrows-left-right"></i> Eficiencia</div>
+                    </div>
+                    <div class="card stat-card bc-orange">
+                        <div class="card-title">POR VENCER (30D)</div>
+                        <div class="card-value" id="info-vencimientos-30d">--</div>
+                        <div class="stat-trend text-orange"><i class="ph ph-clock"></i> Lotes en riesgo</div>
+                    </div>
+                    <div class="card stat-card bc-gray">
+                        <div class="card-title">STOCK INMOVILIZADO</div>
+                        <div class="card-value" id="info-stock-muerto">--</div>
+                        <div class="stat-trend text-muted"><i class="ph ph-ghost"></i> Sin salidas (30D)</div>
+                    </div>
+                </div>
+
+                <div class="data-table-card">
+                    <div class="table-header-flex">
+                        <div>
+                            <h3 class="font-bold" id="report-title-text">Resumen de Movimientos Diarios</h3>
+                            <p class="text-muted text-sm mt-4">Datos correspondientes al análisis actual del inventario
+                                global.</p>
+                        </div>
+                        <div class="search-input-wrapper"><i class="ph ph-magnifying-glass"></i><input type="text"
+                                id="report-search-input" class="form-control" placeholder="Filtrar datos..."></div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead id="report-table-head">
+                                <tr>
+                                    <th>CÓDIGO / INSUMO</th>
+                                    <th>CATEGORÍA</th>
+                                    <th>CANTIDAD</th>
+                                    <th>ESTADO</th>
+                                    <th>UBICACIÓN</th>
+                                    <th>VALORIZACIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body">
+                                <!-- Dinámico según pestaña -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="data-table-card mt-24">
+                    <div class="table-header-flex"
+                        style="background-color: #f8fafc; border-bottom: 2px solid var(--border-color);">
+                        <div>
+                            <h3 class="font-bold"><i class="ph ph-shield-check text-primary"></i> Logs de Auditoría y
+                                Errores</h3>
+                            <p class="text-muted text-sm mt-4">Historizado de incidencias críticas en procesos de carga
+                                masiva.</p>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="btn-refresh-informes"><i
+                                class="ph ph-arrows-clockwise"></i> Actualizar</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>FECHA / HORA</th>
+                                    <th>TIPO</th>
+                                    <th>USUARIO</th>
+                                    <th>RESULTADO</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="informes-auditoria-tbody">
+                                <!-- Dinámico: Colección informes -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="data-table-card mt-24">
+                    <div class="table-header-flex"
+                        style="background-color: #f1f5f9; border-bottom: 2px solid var(--border-color);">
+                        <div>
+                            <h3 class="font-bold"><i class="ph ph-bug text-danger"></i> Monitor de Logs del Sistema</h3>
+                            <p class="text-muted text-sm mt-4">Eventos técnicos y errores de comunicación en tiempo
+                                real.</p>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>FECHA / HORA</th>
+                                    <th>MÓDULO</th>
+                                    <th>GRAVEDAD</th>
+                                    <th>INCIDENCIA</th>
+                                    <th>ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody id="system-logs-tbody">
+                                <!-- Dinámico: Colección Logs_Sistema -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <div class="grid-2-col-even mt-24" style="grid-template-columns: 2fr 1fr;">
+                    <div class="predictive-card" style="padding:40px;">
+                        <div class="ia-pill mb-16"><i class="ph-fill ph-sparkle"></i> ANÁLISIS PREDICTIVO VISOR IA</div>
+                        <h2 style="color:white; font-size:28px; font-weight:700; margin-bottom:16px; width:80%;">
+                            Optimización del Inventario de Quirófano</h2>
+                        <p style="color:#cbd5e1; font-size:15px; line-height:1.6; margin-bottom:32px;">Nuestros modelos
+                            predicen una alta demanda de anestésicos para la próxima semana debido a la programación de
+                            cirugías electivas. Se recomienda aumentar el stock de seguridad en un 15%.</p>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:32px;">
+                            <div
+                                style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                                <p style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:8px;">AHORRO
+                                    ESTIMADO</p>
+                                <p style="font-size:24px; font-weight:700; color:white;">$845.000</p>
+                            </div>
+                            <div
+                                style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                                <p style="font-size:11px; font-weight:700; color:#94a3b8; margin-bottom:8px;">RIESGO
+                                    QUIEBRE</p>
+                                <p style="font-size:24px; font-weight:700; color:white;">Bajo (4%)</p>
+                            </div>
+                        </div>
+                        <button id="btn-ia-report-detail" class="btn btn-primary" onclick="window.handleAnalisisIA(this)"
+                            style="background-color: white; color: var(--text-main); font-weight: 700;">Ver reporte
+                            detallado &rarr;</button>
+                    </div>
+                    <div class="card alerts-card" style="background:#f8fafc;">
+                        <h3
+                            style="font-size:16px; font-weight:700; margin-bottom:24px; display:flex; align-items:center; gap:8px;">
+                            <i class="ph ph-bell text-warning"></i> Alertas Logísticas</h3>
+                        <div style="display:flex; flex-direction:column; gap:24px; margin-bottom:32px;">
+                            <div style="display:flex; gap:16px; align-items:flex-start;">
+                                <div
+                                    style="width:36px; height:36px; border-radius:50%; background:var(--danger-light); color:var(--danger); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="ph ph-warning"></i></div>
+                                <div>
+                                    <div class="font-bold text-sm">Vencimiento cercano</div>
+                                    <div class="text-sm text-muted" style="font-size:11px; margin-top:4px;">Lote V-1123
+                                        vence en 8 días.</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:16px; align-items:flex-start;">
+                                <div
+                                    style="width:36px; height:36px; border-radius:50%; background:var(--warning-light); color:var(--warning); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="ph ph-clipboard-text"></i></div>
+                                <div>
+                                    <div class="font-bold text-sm">Punto de reorden</div>
+                                    <div class="text-sm text-muted" style="font-size:11px; margin-top:4px;">Gasas
+                                        estériles por debajo del min.</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:16px; align-items:flex-start;">
+                                <div
+                                    style="width:36px; height:36px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="ph ph-truck"></i></div>
+                                <div>
+                                    <div class="font-bold text-sm">Pedido en camino</div>
+                                    <div class="text-sm text-muted" style="font-size:11px; margin-top:4px;">OC #2024-91
+                                        arribará hoy 16:00hs.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="btn-config-alerts" class="btn btn-outline"
+                            style="width:100%; justify-content:center; font-weight: 700;">Configurar Alertas</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: Transferencias -->
+            <section id="view-transferencias" class="view-section" style="display: none;">
+                <div class="view-header" style="padding: 20px; border-bottom: 1px solid #ddd;">
+                    <h2>Transferencias y Auditoría Clínica (SITRAE)</h2>
+                </div>
+
+                <div class="transfer-tabs-container" style="padding: 20px; background: #f8f9fa;">
+                    <button class="btn btn-primary"
+                        onclick="document.getElementById('tab-despacho').style.display='block'; document.getElementById('tab-bandejas').style.display='none';">Nueva
+                        Transferencia (Despacho)</button>
+                    <button class="btn btn-outline"
+                        onclick="document.getElementById('tab-despacho').style.display='none'; document.getElementById('tab-bandejas').style.display='block';">Bandejas
+                        Activas y Arqueos</button>
+                </div>
+
+                <div id="tab-despacho" class="transfer-tab-content" style="padding: 20px;">
+                    <div class="template-selector" style="margin-bottom: 20px;">
+                        <label><strong>Cargar Plantilla de Insumos:</strong></label>
+                        <select id="select-plantilla" class="form-control"
+                            style="width: 300px; display: inline-block; margin-left: 10px;">
+                            <option value="">Seleccione una plantilla base...</option>
+                            <option value="urgencias">Bandeja Urgencias Estándar</option>
+                            <option value="noche">Bandeja Turno Noche</option>
+                        </select>
+                    </div>
+                    <table class="table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #e9ecef;">
+                                <th>Insumo / Medicamento</th>
+                                <th>Cantidad a Despachar</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: 20px;">Seleccione una plantilla o
+                                    agregue insumos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-success" style="margin-top: 15px;">Autorizar y Despachar Bandeja</button>
+                </div>
+
+                <div id="tab-bandejas" class="transfer-tab-content" style="display: none; padding: 20px;">
+                    <div class="card bandeja-card"
+                        style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; max-width: 400px;">
+                        <h4>Bandeja 1 - Turno Mañana</h4>
+                        <p><strong>Estado:</strong> En Uso (Pendiente de Arqueo)</p>
+                        <button class="btn btn-warning"
+                            onclick="document.getElementById('modal-arqueo').style.display='block'">Realizar
+                            Verificación Cruzada</button>
+                    </div>
+                </div>
+
+                <div id="modal-arqueo" class="modal"
+                    style="display: none; position: fixed; top: 5%; left: 10%; right: 10%; bottom: 5%; background: white; border: 1px solid #ccc; z-index: 1000; padding: 20px; overflow-y: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <h3>Auditoría Cruzada (Fin de Turno)</h3>
+                    <div
+                        style="border: 2px dashed #007bff; padding: 30px; text-align: center; margin: 20px 0; background: #f0f8ff;">
+                        Arrastra aquí el "Consolidado de Pacientes" (PDF/Excel)</div>
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr style="background: #e9ecef;">
+                                <th>Medicamento</th>
+                                <th>Faltante</th>
+                                <th>Uso Clínico</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ketorolaco 30mg</td>
+                                <td>3</td>
+                                <td>3</td>
+                                <td>🟢 Match</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-danger" style="margin-top: 20px;"
+                        onclick="document.getElementById('modal-arqueo').style.display='none'">Cerrar Auditoría</button>
+                </div>
+            </section>
+
+            <!-- VIEW: Bodegas -->
+            <section id="view-bodegas" class="view-section">
+                <div class="dashboard-container">
+                    <div class="page-header mb-24">
+                    <div class="page-title">
+                        <h1>Gestión de Bodegas</h1>
+                        <p>Administración de red de almacenes, farmacias y distribución de stock.</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid mb-32" id="bodegas-cards-container">
+                    <!-- Dinámico: Colección Bodegas -->
+                    <div class="card"
+                        style="border: 2px dashed var(--border-color); background:transparent; display:flex; align-items:center; justify-content:center; cursor:pointer;"
+                        onclick="document.querySelector('#bodega-nombre').focus()">
+                        <div
+                            style="color:var(--text-muted); font-weight:600; display:flex; gap:8px; align-items:center;">
+                            <i class="ph ph-plus-circle" style="font-size:24px;"></i> Nuevo Anexo</div>
+                    </div>
+                </div>
+
+                <div class="grid-2-col-users">
+                    <!-- Left: Form -->
+                    <div class="user-left-col">
+                        <div class="card form-card mb-24">
+                            <h3 class="form-title"><i class="ph-fill ph-storefront text-primary"></i> Nueva Bodega</h3>
+                            <p class="sub-text mb-20">Registre un nuevo espacio clínico para distribución.</p>
+
+                            <form id="form-bodegas" data-target="#modal-bodegas" data-modal="true">
+                                <div class="form-group">
+                                    <label class="form-label" for="bodega-nombre">Nombre del Recinto</label>
+                                    <input type="text" class="form-control" name="name" id="bodega-nombre"
+                                        placeholder="Ej. Bodega Insumos" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="bodega-tipo">Tipo de Recinto</label>
+                                    <select class="form-control" name="type" id="bodega-tipo" required>
+                                        <option value="" disabled selected>Seleccione...</option>
+                                        <option value="principal">Bodega Principal</option>
+                                        <option value="despacho">Farmacia / Despacho</option>
+                                        <option value="satelite">Bodega Satélite</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="bodega-responsable">Responsable</label>
+                                    <select class="form-control" name="managerId" id="bodega-responsable" required>
+                                        <option value="" disabled selected>Seleccione...</option>
+                                        <option value="dr-rossi">Dr. Rossi</option>
+                                        <option value="m-sanchez">Marta Sánchez</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="bodega-capacidad">Capacidad (Pallets / M2)</label>
+                                    <input type="text" class="form-control" name="capacityMetrics" id="bodega-capacidad"
+                                        placeholder="Ej. 120M2 / 50 P" required>
+                                </div>
+                                <div class="form-group checkbox-group"
+                                    style="display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" name="isActive" id="bodega-activa" value="true" checked>
+                                    <label class="form-label" for="bodega-activa"
+                                        style="margin-bottom:0; cursor:pointer;">Bodega Operativa</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary"
+                                    style="width:100%; justify-content:center; margin-top:8px;"
+                                    data-target="#modal-bodegas" data-modal="true">
+                                    <i class="ph-fill ph-plus-circle"></i> Crear Bodega
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right: Table -->
+                    <div class="data-table-card">
+                        <div class="table-header-flex bb-1">
+                            <div>
+                                <h3 class="font-bold">Stock Local por Sucursal</h3>
+                            </div>
+                        </div>
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table>
+                                <thead>
+                                    <tr id="bodegas-thead-row">
+                                        <th>INSUMO</th>
+                                        <!-- Se puebla dinámicamente -->
+                                    </tr>
+                                </thead>
+                                <tbody id="bodegas-tbody">
+                                    <!-- Se puebla dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                </div> <!-- END dashboard-container -->
+            </section>
+
+
+            <!-- VIEW: Configuración -->
+            <section id="view-configuracion" class="view-section admin-only">
+                <div class="page-header mb-24">
+                    <div class="page-title">
+                        <h1>Configuración del Sistema</h1>
+                        <p>Parámetros técnicos, alertas y personalización de la red SAR.</p>
+                    </div>
+                </div>
+
+                <div class="card" style="padding:0; overflow:hidden;">
+                    <div style="background:#f8fafc; border-bottom:1px solid var(--border-color); display:flex;">
+                        <button class="config-tab active" data-tab="general"
+                            style="padding:16px 24px; border:none; background:transparent; font-weight:700; color:var(--primary); border-bottom:2px solid var(--primary); cursor:pointer;">GENERAL</button>
+                        <button class="config-tab" data-tab="logistica"
+                            style="padding:16px 24px; border:none; background:transparent; font-weight:600; color:var(--text-muted); cursor:pointer;">LOGÍSTICA</button>
+                        <button class="config-tab" data-tab="seguridad"
+                            style="padding:16px 24px; border:none; background:transparent; font-weight:600; color:var(--text-muted); cursor:pointer;">SEGURIDAD</button>
+                    </div>
+
+                    <div style="padding:32px;">
+                        <form id="form-config-global">
+                            <!-- Tab: General -->
+                            <div id="tab-general" class="tab-content-item">
+                                <div class="grid-2-col-even mb-24">
+                                    <div class="form-group">
+                                        <label class="form-label">Nombre del Centro / SAR</label>
+                                        <input type="text" name="institutionName" id="config-institution-name"
+                                            class="form-control" placeholder="Ej. SAR Concón">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Email de Notificaciones</label>
+                                        <input type="email" name="contactEmail" id="config-contact-email"
+                                            class="form-control" placeholder="logistica@sar.cl">
+                                    </div>
+                                </div>
+                                <div class="maintenance-box mt-24"
+                                    style="background:#f1f5f9; padding:20px; border-radius:12px; border:1px solid #e2e8f0;">
+                                    <h4
+                                        style="font-size:13px; font-weight:700; color:var(--primary); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                                        <i class="ph ph-wrench"></i> Mantenimiento de Metadatos
+                                    </h4>
+                                    <p
+                                        style="font-size:12px; color:var(--text-muted); line-height:1.5; margin-bottom:16px;">
+                                        Si nota discrepancias en los contadores del Dashboard, ejecute un recálculo
+                                        manual. Esto sincronizará el documento de resumen global con el estado actual de
+                                        todos los insumos (Operación O(N)).
+                                    </p>
+                                    <button type="button" id="btn-recalculate-stats" class="btn btn-outline"
+                                        style="background:white; border-color:var(--primary); color:var(--primary); font-weight:700;">
+                                        <i class="ph ph-arrows-clockwise"></i> Recalcular Estadísticas del Dashboard
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tab: Logística -->
+                            <div id="tab-logistica" class="tab-content-item" style="display:none;">
+                                <div class="grid-2-col-even mb-24">
+                                    <div class="form-group">
+                                        <label class="form-label">Días para Alerta "Urgente" (Zona Roja)</label>
+                                        <input type="number" name="daysUrgent" id="config-days-urgent"
+                                            class="form-control" value="30">
+                                        <p class="text-sm text-muted mt-8">Insumos que vencen en menos de estos días
+                                            aparecerán en rojo.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Días para Alerta "Precaución" (Zona Naranja)</label>
+                                        <input type="number" name="daysCaution" id="config-days-caution"
+                                            class="form-control" value="180">
+                                        <p class="text-sm text-muted mt-8">Insumos que vencen entre el período urgente y
+                                            este valor.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab: Seguridad -->
+                            <div id="tab-seguridad" class="tab-content-item" style="display:none;">
+                                <div class="form-group mb-24">
+                                    <label class="form-label">Tiempo de Expiración de Sesión (Minutos)</label>
+                                    <input type="number" name="sessionTimeout" class="form-control" value="60">
+                                </div>
+                                <div class="checkbox-group mb-16" style="display:flex; align-items:center; gap:8px;">
+                                    <input type="checkbox" name="requireTwoFactor" checked>
+                                    <label class="form-label" style="margin-bottom:0;">Requerir Validación Dual para
+                                        Eliminaciones</label>
+                                </div>
+
+                                <div class="maintenance-box mt-24"
+                                    style="background:#fff3cd; padding:20px; border-radius:12px; border:1px solid #ffeeba; margin-bottom: 24px;">
+                                    <h4
+                                        style="font-size:13px; font-weight:700; color:#856404; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                                        <i class="ph ph-warning"></i> AUDITORÍA CLÍNICA: Ajuste Crítico
+                                    </h4>
+                                    <p style="font-size:12px; color:#856404; line-height:1.5; margin-bottom:16px;">
+                                        Ajuste forzado de stock. Requiere justificación auditable y doble verificación
+                                        (uso exclusivo Administrador).
+                                    </p>
+                                    <button type="button" id="btn-abrir-ajuste" class="btn btn-warning" style="border: 3px solid #d39e00; font-weight: bold; background-color: #ffc107; color: #212529;" onclick="document.querySelector('[data-target=\'view-ajustes\']').click();">Realizar Ajuste Crítico de Inventario</button>
+
+                                </div>
+
+                                <div class="maintenance-box mt-24"
+                                    style="background:var(--danger-bg); padding:20px; border-radius:12px; border:1px solid var(--danger);">
+                                    <h4
+                                        style="font-size:13px; font-weight:700; color:white; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                                        <i class="ph ph-warning"></i> ZONA DE RIESGO: Borrado de Inventario
+                                    </h4>
+                                    <p style="font-size:12px; color:white; line-height:1.5; margin-bottom:16px;">
+                                        Esta acción ELIMINARÁ todos los medicamentos registrados, historiales de
+                                        movimientos y logs de auditoría. Es un borrado total y permanente, diseñado para
+                                        reiniciar el sistema en blanco.
+                                    </p>
+                                    <button type="button" id="btn-abrir-borrado" class="btn btn-danger"
+                                        style="background:transparent; border-color:white; color:white; font-weight:700;"
+                                        onclick="document.getElementById('modal-borrado-total').style.display='flex';">
+                                        🗑️ Eliminar Inventario Total
+                                    </button>
+                                </div>
+
+                                <div id="panel-autorizacion-superadmin" style="display: none; margin-top: 30px; border: 2px solid #007bff; border-radius: 8px; padding: 20px; background: #f8f9fa;">
+                                    <h3 style="color: #007bff; margin-bottom: 15px;">🛡️ Bandeja de Autorizaciones (Exclusivo SuperAdmin)</h3>
+                                    <table class="table" style="width: 100%; background: white;">
+                                        <thead><tr><th>Código</th><th>Fecha</th><th>Usuario Solicitante</th><th>Estado</th><th>Acción</th></tr></thead>
+                                        <tbody id="tabla-solicitudes-criticas">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div
+                                style="display:flex; justify-content:flex-end; border-top:1px solid var(--border-color); padding-top:24px;">
+                                <button type="submit" class="btn btn-primary" id="btn-save-config">
+                                    <i class="ph ph-floppy-disk"></i> Guardar Cambios Globales
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: Usuarios -->
+            <section id="view-usuarios" class="view-section">
+                <div class="dashboard-container">
+                <div class="page-header mb-24">
+                    <div class="page-title">
+                        <h1>Gestión de Usuarios</h1>
+                        <p>Administración de accesos y roles del personal logístico.</p>
+                    </div>
+                </div>
+
+                <div class="grid-2-col-users">
+                    <!-- Left: Form -->
+                    <div class="user-left-col">
+                        <div class="card form-card mb-24">
+                            <h3 class="form-title"><i class="ph-fill ph-user-plus text-primary"></i> Nuevo Usuario</h3>
+                            <p class="sub-text mb-20">Registre un nuevo miembro en el sistema logístico.</p>
+
+                            <form id="form-usuarios" >
+                                <div class="form-group">
+                                    <label class="form-label" for="usuario-nombre">Nombre Completo</label>
+                                    <input type="text" class="form-control" name="fullName" id="usuario-nombre"
+                                        placeholder="Ej. Dr. Alejandro Rossi" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="usuario-username">Usuario</label>
+                                    <div class="input-with-icon">
+                                        <span class="input-icon">@</span>
+                                        <input type="text" class="form-control with-icon" name="username"
+                                            id="input-nuevo-usuario-email" placeholder="ejemplo" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="usuario-rol">Rol</label>
+                                    <select class="form-control" name="role" id="select-nuevo-usuario-rol" required>
+                                        <option value="" disabled>Seleccione...</option>
+                                        <option value="superadmin">Superadmin (Acceso Total)</option>
+                                        <option value="admin">Administrador</option>
+                                        <option value="operador" selected>Operador</option>
+                                        <option value="auditor">Auditor</option>
+                                    </select>
+                                </div>
+                                
+                                <button id="btn-guardar-usuario" type="submit" class="btn btn-primary"
+                                    style="width:100%; justify-content:center; margin-top:8px;"
+                                    data-target="#modal-usuarios" data-modal="true">
+                                    <i class="ph-fill ph-user-plus"></i> Crear Usuario
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="alert-box alert-ia">
+                            <h4><i class="ph-fill ph-sparkle"></i> Asistente IA</h4>
+                            <p>Los roles determinan el acceso a secciones críticas como "Inventario" y "Movimientos".
+                                Revise las políticas de seguridad.</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Table -->
+                    <div class="data-table-card">
+                        <div class="table-header-flex bb-1">
+                            <div>
+                                <h3 class="font-bold">Listado de Personal</h3>
+                                <p class="text-muted text-sm mt-4" id="ui-users-count-display">Cargando usuarios...</p>
+                            </div>
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                
+                                <div class="search-input-wrapper"><i class="ph ph-magnifying-glass"></i><input
+                                        type="text" id="users-search-input" class="form-control"
+                                        placeholder="Buscar por nombre o email..."></div>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>NOMBRE</th>
+                                        <th>USUARIO/CENTER</th>
+                                        <th>ROL</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-usuarios-body">
+                                    <!-- Dinámico: Colección Usuarios -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<div id="modal-credenciales-usuario" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+                    <div style="background: white; padding: 35px; border-radius: 12px; width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+                        <h2 style="color: #0d6efd; margin-top: 0;"><i class="ph ph-identification-card"></i> Cuenta Creada Exitosamente</h2>
+                        <p style="color: #6c757d; margin-bottom: 25px;">Tome una captura de pantalla y envíe estas credenciales al nuevo usuario.</p>
+                        
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; text-align: left; font-size: 1.2em;">
+                            <p style="margin-bottom: 10px;"><strong>Usuario:</strong> <span id="cred-email" style="color: #0d6efd; font-weight: bold;"></span></p>
+                            <p style="margin-bottom: 10px;"><strong>Clave Temporal:</strong> <span id="cred-pass" style="color: #dc3545; font-weight: bold;"></span></p>
+                            <p style="margin-bottom: 0;"><strong>Rol Asignado:</strong> <span id="cred-rol" style="text-transform: capitalize; font-weight: bold;"></span></p>
+                        </div>
+                        
+                        <div style="margin-top: 15px; text-align: left; font-size: 0.9em; color: #666;">
+                            <em>* Se solicitará al usuario cambiar esta contraseña en su primer ingreso (Próxima actualización).</em>
+                        </div>
+
+                        <button class="btn btn-primary w-100" style="margin-top: 25px; font-weight: bold; font-size: 1.1em; padding: 12px;" onclick="document.getElementById('modal-credenciales-usuario').style.display='none'">✔️ Cerrar y Continuar</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NUEVA VISTA: Gestión de Abastecimiento -->
+            <section id="view-compras" class="view-section" style="display: none;">
+                <div class="view-header">
+                    <h2>Gestión de Abastecimiento (Smart Procurement)</h2>
+                    <p class="text-muted">Órdenes de compra sugeridas por el Motor Predictivo.</p>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="card" style="grid-column: span 12;">
+                        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="card-title"><i class="ph-fill ph-shopping-cart" style="color:var(--primary);"></i> Bandeja de Solicitudes</div>
+                            <div style="display:flex; gap:12px;">
+                                <button class="btn btn-outline" onclick="window.openManualOCModal()">
+                                    <i class="ph ph-plus"></i> Agregar Manual
+                                </button>
+                                <button class="btn btn-primary" onclick="window.exportFullPurchaseOrderPDF()">
+                                    <i class="ph ph-file-pdf"></i> Descargar OC (PDF)
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>CÓDIGO</th>
+                                        <th>INSUMO</th>
+                                        <th>CANT. SUGERIDA</th>
+                                        <th>DÍAS P/QUIEBRE</th>
+                                        <th>ESTADO</th>
+                                        <th>FECHA</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compras-table-body">
+                                    <tr><td colspan="7" style="text-align:center;">Cargando solicitudes...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: Gestión de Usuarios -->
+            
+    </div>
+
+    <!-- MODAL: PERFIL DE USUARIO -->
+    <div id="modal-user-profile" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 35px; border-radius: 12px; width: 450px; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #212529;"><i class="ph ph-user-circle"></i> Mi Perfil</h2>
+                <button class="btn btn-icon" onclick="document.getElementById('modal-user-profile').style.display='none'"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label class="form-label">Correo Institucional</label>
+                <input type="text" class="form-control" id="profile-email" disabled style="background-color: #e9ecef; cursor: not-allowed;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label class="form-label" id="profile-nombre-label">Nombre Completo</label>
+                <input type="text" class="form-control" id="profile-nombre" placeholder="Ej. Juan Pérez">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn btn-primary" id="btn-save-profile" style="width: 100%; justify-content: center;"><i class="ph ph-floppy-disk"></i> Guardar Cambios</button>
+                <button class="btn btn-outline" id="btn-reset-password" style="width: 100%; justify-content: center; color: #6c757d; border-color: #dee2e6;"><i class="ph ph-key"></i> Solicitar Cambio de Contraseña</button>
+            </div>
+        </div>
+    </div>
+
+    </main>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: CARGA MASIVA (EXCEL)                                  -->
+    <!-- ============================================================ -->
+    <div id="modal-carga-masiva" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:500px; max-width:95%;">
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-radius:12px 12px 0 0;">
+                <h3 class="font-bold"><i class="ph ph-file-arrow-up"></i> Carga Masiva de Inventario</h3>
+                <button type="button" class="close-modal-btn btn btn-icon"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="padding:24px;">
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                    Seleccione el archivo Excel/CSV y la bodega de destino para ingresar el stock masivamente.
+                </p>
+                <div class="form-group mb-16">
+                    <label class="form-label" style="font-weight: bold;">Archivo a cargar:</label>
+                    <input type="file" id="inventory-excel-input" class="form-control" accept=".xlsx, .xls" required>
+                </div>
+                <div class="form-group mb-24">
+                    <label style="font-weight: bold; margin-top: 10px;">Bodega de Recepción:</label>
+                    <select id="carga-masiva-bodega" class="form-control" style="margin-bottom: 15px;" required>
+                        <option value="">Seleccione destino del inventario...</option>
+                        <option value="Bodega Central">Bodega Central</option>
+                    </select>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                    <button type="button" id="btn-confirmar-carga-masiva" class="btn btn-primary" style="background-color: var(--primary);">
+                        <i class="ph ph-check-circle"></i> Confirmar Carga
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Bodega -->
+    <div id="bodega-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <span id="modal-bodega-type" class="text-primary font-bold text-sm">TIPO</span>
+                    <h2 id="modal-bodega-name">Nombre Bodega</h2>
+                </div>
+                <button class="btn btn-icon close-modal-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="grid-3-col mb-24">
+                    <div class="info-group">
+                        <label>Stock Total</label>
+                        <p id="modal-bodega-stock" class="font-bold text-primary" style="font-size:18px;">0</p>
+                    </div>
+                    <div class="info-group">
+                        <label>Estado</label>
+                        <p id="modal-bodega-status"><span class="badge-green">Operativa</span></p>
+                    </div>
+                    <div class="info-group">
+                        <label>Responsable</label>
+                        <p class="font-bold" style="font-size:13px;">Dr. Rossi</p>
+                    </div>
+                </div>
+                <h4 class="font-bold mb-16"
+                    style="font-size:13px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">Últimos
+                    Movimientos de Control</h4>
+                <div class="activity-list" style="margin-top:0;">
+                    <div class="activity-item">
+                        <div class="dot-indicator blue-dot"></div>
+                        <div>
+                            <div class="item-name text-sm">Transferencia Saliente (Urgencias)</div>
+                            <div class="item-category" style="font-size:10px;">Hace 2 horas - Autorizado Automático
+                            </div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="dot-indicator green-dot"></div>
+                        <div>
+                            <div class="item-name text-sm">Ingreso Stock (Proveedor Directo)</div>
+                            <div class="item-category" style="font-size:10px;">Ayer 14:00 - Lote OC-9882</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:24px; text-align:right;">
+                <button class="btn btn-outline close-modal-btn">Cerrar Detalle</button>
+                <button class="btn btn-primary" id="btn-trigger-transfer"><i class="ph ph-arrows-left-right"></i>
+                    Transferir / Traspaso</button>
+                <button class="btn btn-primary admin-only" id="btn-delete-bodega"
+                    style="background-color: var(--danger);"><i class="ph ph-trash"></i> Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: REPORTE DE DESCARTE (Tarjeta Urgencias)              -->
+    <!-- ============================================================ -->
+    <div id="modal-reporte-descarte" class="modal-overlay">
+        <div class="modal-card"
+            style="background:white; border-radius:16px; width:90%; max-width:800px; max-height:88vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); transform:translateY(20px); transition:transform 0.3s ease;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; background:var(--danger-bg); border-radius:16px 16px 0 0;">
+                <div style="display:flex; align-items:center; gap:10px; color:white; font-weight:700; font-size:17px;">
+                    <i class="ph-fill ph-warning-circle"></i> Reporte de Descarte — Urgencias
+                </div>
+                <button type="button" class="close-modal-btn btn btn-icon" style="color:white;"><i
+                        class="ph ph-x"></i></button>
+            </div>
+            <div style="padding:24px;">
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                    Insumos <strong>vencidos o por vencer en los próximos 30 días</strong>. Requieren acción inmediata
+                    de descarte o reposición.
+                </p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>PRODUCTO</th>
+                                <th>LOTE</th>
+                                <th>CANTIDAD</th>
+                                <th>VENCIMIENTO</th>
+                                <th>ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-descarte-tbody">
+                            <!-- Poblado dinámicamente por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div
+                style="display:flex; justify-content:flex-end; gap:12px; padding:16px 24px; border-top:1px solid var(--border-color);">
+                <button type="button" class="close-modal-btn btn btn-outline">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btn-exportar-descarte">
+                    <i class="ph ph-download-simple"></i> Exportar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: PLANIFICAR ROTACIÓN (Tarjeta Precaución)             -->
+    <!-- ============================================================ -->
+    <div id="modal-rotacion" class="modal-overlay">
+        <div class="modal-card"
+            style="background:white; border-radius:16px; width:90%; max-width:820px; max-height:88vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); transform:translateY(20px); transition:transform 0.3s ease;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; background:var(--warning-bg); border-radius:16px 16px 0 0;">
+                <div style="display:flex; align-items:center; gap:10px; color:white; font-weight:700; font-size:17px;">
+                    <i class="ph-fill ph-clock"></i> Plan de Rotación — Precaución (1 a 6 meses)
+                </div>
+                <button type="button" class="close-modal-btn btn btn-icon" style="color:white;"><i
+                        class="ph ph-x"></i></button>
+            </div>
+            <div style="padding:24px;">
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                    Insumos que vencen <strong>entre 1 y 6 meses</strong>. Se recomienda priorizar su uso o
+                    transferencia antes de que entren en zona de urgencia.
+                </p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>PRODUCTO / LOTE</th>
+                                <th>UBICACIÓN ACTUAL</th>
+                                <th>STOCK VULNERABLE</th>
+                                <th>VENCIMIENTO</th>
+                                <th>REASIGNACIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-rotacion-tbody">
+                            <!-- Poblado dinámicamente por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div
+                style="display:flex; justify-content:flex-end; gap:12px; padding:16px 24px; border-top:1px solid var(--border-color);">
+                <button type="button" class="close-modal-btn btn btn-outline">Cerrar</button>
+                <button type="button" class="btn btn-primary" style="background-color:var(--warning-bg);">
+                    <i class="ph ph-arrow-clockwise"></i> Confirmar Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: ANÁLISIS IA DE INVENTARIO                            -->
+    <!-- ============================================================ -->
+    <div id="modal-ia-analisis" class="modal-overlay">
+        <div class="modal-card"
+            style="background:white; border-radius:16px; width:90%; max-width:800px; max-height:88vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); transform:translateY(20px); transition:transform 0.3s ease;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; padding:20px 24px; background:linear-gradient(135deg, #1e1b4b, #312e81); border-radius:16px 16px 0 0;">
+                <div style="display:flex; align-items:center; gap:10px; color:white; font-weight:700; font-size:17px;">
+                    <i class="ph-fill ph-sparkle"></i> Análisis IA de Inventario
+                </div>
+                <button type="button" class="close-modal-btn btn btn-icon" style="color:white;"><i
+                        class="ph ph-x"></i></button>
+            </div>
+            <div style="padding:24px;">
+                <!-- Estado: Cargando -->
+                <div id="ia-modal-loading"
+                    style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px; gap:16px;">
+                    <i class="ph-spinner ph-spin" style="font-size:48px; color:var(--primary);"></i>
+                    <p style="font-size:14px; color:var(--text-muted); font-weight:600;">Procesando inventario con
+                        modelos predictivos...</p>
+                </div>
+                <!-- Estado: Resultados -->
+                <div id="ia-modal-results" style="display:none;">
+                    <div id="ia-kpis"
+                        style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
+                        <!-- KPIs poblados por JS -->
+                    </div>
+                    <div id="ia-recommendations"
+                        style="background:#f8fafc; border-radius:12px; padding:20px; border:1px solid var(--border-color);">
+                        <!-- Recomendaciones pobladas por JS -->
+                    </div>
+                </div>
+            </div>
+            <div
+                style="display:flex; justify-content:flex-end; gap:12px; padding:16px 24px; border-top:1px solid var(--border-color);">
+                <button type="button" class="close-modal-btn btn btn-outline">Cerrar</button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================ -->
+    <!-- MODAL: WIPE DATABASE (ZONA DE RIESGO)                       -->
+    <!-- ============================================================ -->
+    <div id="modal-wipe-db" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:500px; max-width:95%;">
+            <div
+                style="padding:20px 24px; border-bottom:1px solid var(--danger); display:flex; justify-content:space-between; align-items:center; background:var(--danger-bg); border-radius:12px 12px 0 0; color:white;">
+                <h3 class="font-bold"><i class="ph ph-warning-circle"></i> Confirmación Crítica: Reinicio Total</h3>
+                <button type="button" class="close-modal-btn btn btn-icon" style="color:white;"><i
+                        class="ph ph-x"></i></button>
+            </div>
+            <form id="form-wipe-db" style="padding:24px;">
+                <!-- FASE 1: Confirmación -->
+                <div id="wipe-phase-1">
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                        Se requiere autorización administrativa superior. Para iniciar el borrado definitivo, escriba la
+                        palabra <strong>CONFIRMAR</strong>.
+                    </p>
+                    <div class="form-group mb-24">
+                        <input type="text" id="wipe-confirm-text" class="form-control" placeholder="Escriba CONFIRMAR">
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                        <button type="button" id="btn-wipe-next-1" class="btn btn-primary"
+                            style="background-color:var(--danger); border-color:var(--danger);">Siguiente <i
+                                class="ph ph-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- FASE 2: Contraseña y Generación de Código -->
+                <div id="wipe-phase-2" style="display:none;">
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                        Por favor, valide su identidad ingresando su contraseña de administrador.
+                    </p>
+                    <div class="form-group mb-24">
+                        <label class="form-label">Contraseña de Administrador:</label>
+                        <input type="password" id="wipe-password-input" class="form-control">
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button type="button" class="btn btn-outline" id="btn-wipe-back-1">Atrás</button>
+                        <button type="button" id="btn-wipe-next-2" class="btn btn-primary"
+                            style="background-color:var(--danger); border-color:var(--danger);">Validar y Enviar Código
+                            <i class="ph ph-paper-plane-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- FASE 3: Código de Seguridad -->
+                <div id="wipe-phase-3" style="display:none;">
+                    <div
+                        style="background:#fffbeb; border:1px solid #f59e0b; padding:16px; border-radius:8px; margin-bottom:16px;">
+                        <p style="font-size:13px; color:#92400e; font-weight:700; margin-bottom:8px;">
+                            <i class="ph ph-camera"></i> INSTRUCCIÓN DE RESPALDO:
+                        </p>
+                        <p style="font-size:12px; color:#92400e; line-height:1.5;">
+                            Toma una <strong>captura de pantalla</strong> de esta ventana (donde se vea el código
+                            generado) y envíala por correo electrónico al administrador superior para dejar respaldo en
+                            el historial. Luego, escribe el código exacto abajo para proceder.
+                        </p>
+                    </div>
+
+                    <div class="form-group mb-16">
+                        <label class="form-label" style="color:var(--danger);">Código Generado (Para Captura)</label>
+                        <div style="padding:16px; background:#f1f5f9; border-radius:8px; font-weight:700; font-family:monospace; font-size:24px; text-align:center; letter-spacing:3px; color:var(--danger); border: 2px dashed var(--danger);"
+                            id="wipe-display-code">
+                            --
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-24">
+                        <label class="form-label" style="color:var(--danger);">Ingrese el Código de Seguridad:</label>
+                        <input type="text" id="wipe-code-input" class="form-control" placeholder="Ej. DELETE-XXXX">
+                    </div>
+
+                    <!-- NUEVO CAMPO: PIN de Autorización Dual -->
+                    <div class="form-group mb-24"
+                        style="background: #fee2e2; padding: 15px; border-radius: 8px; border: 1px solid #ef4444;">
+                        <label class="form-label" style="color:var(--danger); font-weight: bold;"><i
+                                class="ph ph-key"></i> PIN de Segunda Aprobación (Global Admin):</label>
+                        <input type="password" id="wipe-pin-input" class="form-control"
+                            placeholder="Ingrese el PIN de 6 dígitos">
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button type="button" class="btn btn-outline close-modal-btn">Cancelar Operación</button>
+                        <button type="submit" class="btn btn-primary"
+                            style="background-color:var(--danger); border-color:var(--danger);">
+                            <i class="ph ph-skull"></i> EJECUTAR PURGA
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: EDICIÓN DE INSUMO (PRO)                              -->
+    <!-- ============================================================ -->
+    <div id="modal-edit-insumo" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:600px; max-width:95%;">
+            <div
+                style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-radius:12px 12px 0 0;">
+                <h3 class="font-bold"><i class="ph ph-pencil-simple-line"></i> Editar Insumo Clínico</h3>
+                <button type="button" class="close-modal-btn btn btn-icon"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="form-edit-insumo" style="padding:24px;">
+                <input type="hidden" id="edit-doc-id">
+                <div class="grid-3-col mb-16">
+                    <div class="form-group">
+                        <label class="form-label">Código (SKU)</label>
+                        <input type="text" id="edit-code" name="code" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <input type="text" id="edit-category" name="category" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Estado Clínico</label>
+                        <select id="edit-status" name="status" class="form-control" style="font-weight:bold;">
+                            <option value="ACTIVO" style="color:var(--success);">ACTIVO</option>
+                            <option value="CUARENTENA" style="color:var(--danger);">CUARENTENA (Alerta ISP)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group mb-16">
+                    <label class="form-label">Nombre / Descripción del Producto</label>
+                    <input type="text" id="edit-name" name="name" class="form-control" required
+                        style="font-weight:700;">
+                </div>
+                <div class="grid-3-col mb-16">
+                    <div class="form-group">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" id="edit-quantity" name="quantity" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Costo Unit.</label>
+                        <input type="number" id="edit-unitPrice" name="unitPrice" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stock Crítico</label>
+                        <input type="number" id="edit-criticalLimit" name="criticalLimit" class="form-control"
+                            value="50">
+                    </div>
+                </div>
+                <div class="grid-2-col-even mb-16">
+                    <div class="form-group">
+                        <label class="form-label">Lote</label>
+                        <input type="text" id="edit-batch" name="batch" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Vencimiento</label>
+                        <input type="date" id="edit-expirationDate" name="expirationDate" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group mb-24">
+                    <label class="form-label">Ubicación (Pasillo/Estante)</label>
+                    <input type="text" id="edit-location" name="location" class="form-control">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--primary);">
+                        <i class="ph ph-floppy-disk"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="modal-borrado-total" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 999999; justify-content: center; align-items: center; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;">
+        <div class="modal-content" style="background: white; padding: 40px; border-radius: 8px; width: 500px; border: 4px solid #dc3545; text-align: center;">
+            <h2 style="color: #dc3545; text-transform: uppercase;">ZONA DE RIESGO: Borrado de Base de Datos</h2>
+            <p style="font-weight: bold;">⚠️ ATENCIÓN: Solo el usuario 'superadmin' puede autorizar esto.</p>
+            <p>Se enviará una solicitud al Super-Administrador para confirmar el borrado total de las colecciones.</p>
+            <input type="text" id="confirmacion-wipe" class="form-control" placeholder="Escriba ELIMINAR para habilitar solicitud" style="width: 100%; margin: 20px 0; text-align: center; text-transform: uppercase;">
+            <button class="btn btn-danger" id="btn-solicitar-wipe" disabled>Solicitar Autorización SuperAdmin</button>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="document.getElementById('modal-borrado-total').style.display='none'">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: EDITAR USUARIO                                       -->
+    <!-- ============================================================ -->
+    <div id="modal-edit-user" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:16px; width:450px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 class="font-bold"><i class="ph ph-user-gear text-primary"></i> Editar Usuario</h3>
+                <button type="button" class="btn btn-icon" onclick="document.getElementById('modal-edit-user').classList.remove('active')"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="form-edit-user">
+                <input type="hidden" id="edit-user-id">
+                <div class="form-group mb-16">
+                    <label class="form-label">Nombre Completo</label>
+                    <input type="text" id="edit-user-fullname" class="form-control" required>
+                </div>
+                <div class="form-group mb-16">
+                    <label class="form-label">Usuario / Email</label>
+                    <input type="text" id="edit-user-email" class="form-control" disabled>
+                </div>
+                <div class="form-group mb-16">
+                    <label class="form-label">Sede / Center</label>
+                    <input type="text" id="edit-user-center" class="form-control" required>
+                </div>
+                <div class="form-group mb-24">
+                    <label class="form-label">Rol del Sistema</label>
+                    <select id="edit-user-role" class="form-control" required>
+                        <option value="superadmin">Superadmin (Acceso Total)</option>
+                        <option value="admin">Administrador</option>
+                        <option value="auditor">Auditor</option>
+                        <option value="operador">Operador</option>
+                    </select>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-edit-user').classList.remove('active')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="ph-fill ph-floppy-disk"></i> Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: TRANSFERENCIA (Inyectado)                            -->
+    <!-- ============================================================ -->
+    <div id="modal-transferencia" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:16px; width:450px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+            <h3 class="font-bold mb-16"><i class="ph ph-arrows-left-right text-primary"></i> Transferencia de Stock</h3>
+            <form id="form-transferencia">
+                <div class="form-group">
+                    <label class="form-label">Bodega Origen</label>
+                    <input type="text" id="transfer-from-name" class="form-control" readonly>
+                    <input type="hidden" id="transfer-from-id">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Insumo a Dispensar / Mover</label>
+                    <select id="transfer-insumo-id" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo de Egreso</label>
+                    <select id="transfer-type" class="form-control">
+                        <option value="BODEGA">Transferencia a Bodega Periférica</option>
+                        <option value="PACIENTE">Dispensación Nominal a Paciente</option>
+                    </select>
+                </div>
+                <div class="form-group" id="group-bodega-destino">
+                    <label class="form-label">Bodega Destino</label>
+                    <select id="transfer-to-id" class="form-control"></select>
+                </div>
+                <!-- Campos Paciente (Ocultos por defecto) -->
+                <div id="group-paciente-destino" style="display:none; padding:12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:16px;">
+                    <div class="form-group mb-12">
+                        <label class="form-label">RUT Paciente</label>
+                        <input type="text" id="transfer-rut-paciente" class="form-control" placeholder="Ej: 12.345.678-9">
+                    </div>
+                    <div class="form-group mb-12">
+                        <label class="form-label">Nombre del Paciente</label>
+                        <input type="text" id="transfer-nombre-paciente" class="form-control" placeholder="Nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">N° Cama / Box</label>
+                        <input type="text" id="transfer-cama-paciente" class="form-control" placeholder="Ej: Box 3 / Cama 12">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cantidad</label>
+                    <input type="number" id="transfer-qty" class="form-control" value="1" min="1" required>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Confirmar Traspaso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: DETALLE DE STOCK CRÍTICO                              -->
+    <!-- ============================================================ -->
+    <div id="modal-stock-critico" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:700px; max-width:95%;">
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#fee2e2; border-radius:12px 12px 0 0;">
+                <h3 class="font-bold text-danger"><i class="ph ph-warning-octagon"></i> Listado de Stock Crítico</h3>
+                <button type="button" class="close-modal-btn btn btn-icon text-danger"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="padding:24px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom: 16px; align-items: center;">
+                    <p class="text-sm text-muted">Productos que están por debajo de su límite de seguridad operativa.</p>
+                    <button class="btn btn-primary" id="btn-export-critico-pdf" style="background-color: var(--danger); border-color: var(--danger);">
+                        <i class="ph ph-file-pdf"></i> Descargar PDF
+                    </button>
+                </div>
+                <div class="table-wrapper" style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>CÓDIGO</th>
+                                <th>INSUMO</th>
+                                <th>CATEGORÍA</th>
+                                <th>CANTIDAD</th>
+                                <th>LÍMITE</th>
+                                <th>UBICACIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="critico-table-body">
+                            <tr><td colspan="6" style="text-align:center;">Cargando inventario crítico...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+                    <button type="button" class="btn btn-outline close-modal-btn">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- MODAL MERMA POPUP -->
+    <div id="modal-merma-popup" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:500px; max-width:90%;">
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#fee2e2; border-radius:12px 12px 0 0;">
+                <h3 style="margin: 0; color: var(--danger); font-weight: bold;"><i class="ph ph-warning"></i> Registrar Merma</h3>
+                <button class="btn btn-icon close-modal-btn" onclick="document.getElementById('modal-merma-popup').classList.remove('active')"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="padding: 24px;">
+                <h4 id="merma-farmaco-nombre" style="margin-bottom: 16px; color: var(--text);">Fármaco</h4>
+                <div class="form-group mb-16">
+                    <label class="form-label font-bold">Cantidad a mermar</label>
+                    <input type="number" class="form-control" id="merma-popup-cantidad" min="1" value="1">
+                </div>
+                <div class="form-group mb-24">
+                    <label class="form-label font-bold">Motivo de Merma (Obligatorio)</label>
+                    <input type="text" class="form-control" id="merma-popup-motivo" placeholder="Ej: Ampolla quebrada, precipitado...">
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                    <button class="btn btn-outline" onclick="document.getElementById('modal-merma-popup').classList.remove('active')">Cancelar</button>
+                    <button class="btn btn-danger" onclick="window.confirmarMermaPopup()">Agregar Merma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ARQUEO PARCIAL POPUP -->
+    <div id="modal-arqueo-parcial-popup" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:500px; max-width:90%;">
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#e0f2fe; border-radius:12px 12px 0 0;">
+                <h3 style="margin: 0; color: #0284c7; font-weight: bold;"><i class="ph ph-stethoscope"></i> Arqueo Parcial / Consumo</h3>
+                <button class="btn btn-icon close-modal-btn" onclick="document.getElementById('modal-arqueo-parcial-popup').classList.remove('active')"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="padding: 24px;">
+                <h4 id="arqueo-farmaco-nombre" style="margin-bottom: 16px; color: var(--text);">Fármaco</h4>
+                <div class="form-group mb-16">
+                    <label class="form-label font-bold">Cantidad a registrar</label>
+                    <input type="number" class="form-control" id="arqueo-popup-cantidad" min="1" value="1">
+                </div>
+                <div class="form-group mb-24">
+                    <label class="form-label font-bold">Motivo (Obligatorio)</label>
+                    <select class="form-control" id="arqueo-popup-motivo">
+                        <option value="Consumido al paciente">Consumido al paciente</option>
+                        <option value="Ampolla quebrada">Ampolla quebrada</option>
+                        <option value="Precipitado">Precipitado</option>
+                        <option value="Perdido">Perdido</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                    <button class="btn btn-outline" onclick="document.getElementById('modal-arqueo-parcial-popup').classList.remove('active')">Cancelar</button>
+                    <button class="btn btn-primary" onclick="window.confirmarArqueoParcialPopup()" style="background: #0284c7; border-color: #0284c7;">Guardar Arqueo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CIERRE DE TURNO Y EXCEL -->
+    <div id="modal-cierre-turno" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:750px; max-width:95%;">
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; border-radius:12px 12px 0 0;">
+                <h3 style="margin: 0; color: var(--text); font-weight: bold;"><i class="ph ph-flag-checkered"></i> Cuadrar y Finalizar Turno</h3>
+                <button class="btn btn-icon close-modal-btn" onclick="document.getElementById('modal-cierre-turno').classList.remove('active')"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="padding:24px;">
+                <p style="color:#666; margin-bottom: 20px;">
+                    Para finalizar el turno y devolver esta bandeja a la bodega, debe subir la planilla Excel exportada desde el sistema de sucursales.<br>
+                    El sistema cuadrará automáticamente los consumos declarados (mermas + consumos) vs las salidas del Excel.
+                </p>
+
+                <div class="form-group mb-24">
+                    <label class="form-label font-bold">Subir Excel (.xlsx)</label>
+                    <input type="file" id="input-excel-cierre" accept=".xlsx" class="form-control" style="padding:10px;">
+                </div>
+
+                <div id="resultado-cuadratura" style="display:none; margin-bottom: 24px;"></div>
+
+                <div style="display: flex; gap: 15px; justify-content: flex-end; align-items:center;">
+                    <button class="btn btn-outline close-modal-btn" onclick="document.getElementById('modal-cierre-turno').classList.remove('active')">Cancelar</button>
+                    <button class="btn btn-primary" id="btn-finalizar-turno" style="display:none;" onclick="window.ejecutarCierreYDevolucion()">
+                        <i class="ph ph-check-circle"></i> Confirmar Cierre de Turno
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODAL: AGREGAR INSUMO MANUAL A ORDEN DE COMPRA               -->
+    <!-- ============================================================ -->
+    <div id="modal-add-oc-manual" class="modal-overlay">
+        <div class="modal-card" style="background:white; border-radius:12px; width:500px; max-width:95%;">
+            <div style="padding:20px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-radius:12px 12px 0 0;">
+                <h3 class="font-bold"><i class="ph ph-plus-circle"></i> Agregar Producto a OC</h3>
+                <button type="button" class="close-modal-btn btn btn-icon"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="form-add-oc-manual" style="padding:24px;">
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+                    Selecciona un producto del catálogo para añadirlo al borrador de la Orden de Compra.
+                </p>
+                <div class="form-group mb-16">
+                    <label class="form-label" style="font-weight: bold;">Seleccionar Producto:</label>
+                    <input type="text" id="manual-oc-search" class="form-control" placeholder="Escribe para buscar (ej. Paracetamol)" list="oc-product-list" required autocomplete="off">
+                    <datalist id="oc-product-list"></datalist>
+                </div>
+                <div class="form-group mb-24">
+                    <label class="form-label" style="font-weight: bold;">Cantidad a Solicitar:</label>
+                    <input type="number" id="manual-oc-qty" class="form-control" min="1" value="1" required>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:12px;">
+                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Añadir a la Orden</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: KARDEX CLINICO (Ficha de Insumo) -->
+    <div id="modal-kardex" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px; width: 95%;">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title" id="kardex-title">Historial Clínico de Insumo</h2>
+                    <p class="text-muted" id="kardex-subtitle">Análisis predictivo y consumos</p>
+                </div>
+                <button class="btn btn-icon close-modal-btn" aria-label="Cerrar"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+                <!-- Resumen Superior -->
+                <div class="cards-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
+                    <div class="card stat-card bc-purple">
+                        <p class="card-title">Stock Actual</p>
+                        <h2 class="card-value text-purple" id="kardex-stock-actual">0</h2>
+                    </div>
+                    <div class="card stat-card bc-orange">
+                        <p class="card-title">Tasa de Salida (30d)</p>
+                        <h2 class="card-value text-orange" id="kardex-consumo-promedio">0.0/día</h2>
+                    </div>
+                    <div class="card stat-card bc-red">
+                        <p class="card-title">Proyección Quiebre</p>
+                        <h2 class="card-value text-red" id="kardex-runway">N/A</h2>
+                    </div>
+                </div>
+
+                <!-- Gráfico Sparkline -->
+                <div class="card" style="margin-bottom: 24px; height: 180px; padding: 16px;">
+                    <h4 style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Dinámica de Salidas (Últimos 90 días)</h4>
+                    <div style="position: relative; height: 130px; width: 100%;">
+                        <canvas id="kardexChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tabla de Movimientos Filtrada -->
+                <h4 style="margin-bottom: 12px; font-weight: 600;">Registro de Actividad</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>FECHA</th>
+                                <th>TIPO</th>
+                                <th>CANTIDAD</th>
+                                <th>ORIGEN / DESTINO</th>
+                                <th>RESPONSABLE</th>
+                                <th>LOTE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kardex-table-body">
+                            <tr><td colspan="6" style="text-align:center;">Cargando historial...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- Módulos de la Aplicación -->
+    <script type="module" src="script.js?v=14.1"></script>
+    <script type="module" src="patch-plantillas.js?v=14.1"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registrado con alcance:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Fallo en el registro del ServiceWorker:', error);
+                    });
+            });
+        }
+    </script>
+    <!-- MODAL CREAR REEMPLAZO -->
+    <div id="modal-crear-reemplazo" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 35px; border-radius: 12px; width: 400px; max-width: 90%;">
+            <h3 style="margin-top: 0;">Crear Enfermero (Temporal)</h3>
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="reemplazo-nombre" class="form-control" placeholder="Ej: Juan Pérez">
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Correo (Puede ser ficticio)</label>
+                <input type="email" id="reemplazo-email" class="form-control" placeholder="juan.perez@sar.cl">
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Contraseña</label>
+                <input type="text" id="reemplazo-pass" class="form-control" value="SA2026*">
+                <small>Clave por defecto para el turno</small>
+            </div>
+            <div style="display: flex; gap: 15px; margin-top: 25px;">
+                <button class="btn btn-outline-secondary" onclick="document.getElementById('modal-crear-reemplazo').style.display='none'" style="flex: 1;">Cancelar</button>
+                <button class="btn btn-primary" id="btn-guardar-reemplazo" style="flex: 1;">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GESTIONAR BANDEJA -->
+    <div id="modal-gestionar-bandeja" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 35px; border-radius: 12px; width: 500px; max-width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Gestión de Bandeja (CREADA)</h3>
+                <button class="btn btn-icon" onclick="document.getElementById('modal-gestionar-bandeja').style.display='none'"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="tab-reasignar" class="btn btn-primary" style="flex: 1;">Reasignar Enfermero</button>
+                <button id="tab-anular" class="btn btn-outline-danger" style="flex: 1;">Anular Bandeja</button>
+            </div>
+            
+            <div id="div-reasignar-bandeja">
+                <label>Seleccionar Nuevo Responsable</label>
+                <select id="select-reasignar-enfermero" class="form-control" style="margin-bottom: 20px;"></select>
+                <button class="btn btn-success w-100" id="btn-confirmar-reasignacion">Confirmar Reasignación</button>
+            </div>
+            
+            <div id="div-anular-bandeja" style="display: none;">
+                <div class="alert alert-warning" style="padding: 10px; background: #fff3cd; color: #856404; border-radius: 5px; margin-bottom: 15px;">
+                    <strong>Atención:</strong> Esta acción devolverá todos los insumos al Inventario Central y dejará la bandeja como ANULADA.
+                </div>
+                <label>Justificación Obligatoria</label>
+                <textarea id="input-anular-obs" class="form-control" rows="3" placeholder="Ej: El enfermero no se presentó al turno..." style="margin-bottom: 20px;"></textarea>
+                <button class="btn btn-danger w-100" id="btn-confirmar-anulacion">Anular Definitivamente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VER CRUCE HISTÓRICO -->
+    <div id="modal-ver-cruce" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 999999; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 35px; border-radius: 12px; width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e9ecef; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Auditoría de Cruce (RAYEN)</h3>
+                <button class="btn btn-icon" onclick="document.getElementById('modal-ver-cruce').style.display='none'"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="body-ver-cruce">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button class="btn btn-outline-secondary" onclick="document.getElementById('modal-ver-cruce').style.display='none'">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ALERTA CENTRO -->
+    <div id="modal-alerta-centro" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 9999999; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div style="background: white; padding: 35px; border-radius: 16px; width: 450px; max-width: 90%; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div id="alerta-centro-icono" style="font-size: 4em; margin-bottom: 15px;"></div>
+            <h3 id="alerta-centro-titulo" style="margin-top: 0; font-size: 1.6em; margin-bottom: 15px;">Notificación</h3>
+            <p id="alerta-centro-mensaje" style="font-size: 1.15em; color: #495057; line-height: 1.5; margin-bottom: 25px;"></p>
+            <button class="btn btn-primary" onclick="document.getElementById('modal-alerta-centro').style.display='none'" style="font-size: 1.1em; padding: 12px 35px; border-radius: 8px; font-weight: 600;">Entendido</button>
+        </div>
+    </div>
+
+
+    <style>
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</body>
+</html>

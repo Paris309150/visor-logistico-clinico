@@ -1,0 +1,32 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      "**/.*",
+      "**/node_modules/**",
+      "manager.js",
+      "set-claims.js",
+      "migrateData.js",
+      "serviceAccountKey.json",
+      "package.json",
+      "package-lock.json",
+      "*.docx",
+      "backups/**",
+      "backup_pre_stable/**",
+      ".rollbacks/**",
+      "_temp_test/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

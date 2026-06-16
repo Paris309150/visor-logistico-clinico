@@ -1,0 +1,154 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // -----------------------------------------------------
+    // FUNCIONES DE APOYO (HELPERS)
+    // -----------------------------------------------------
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserRoleByDoc(docId) {
+      return exists(/databases/$(database)/documents/Usuarios/$(docId)) 
+        ? get(/databases/$(database)/documents/Usuarios/$(docId)).data.get('rol', 
+            get(/databases/$(database)/documents/Usuarios/$(docId)).data.get('role', 'sin_acceso')
+          ).lower()
+        : 'sin_acceso';
+    }
+
+    function getUserRole() {
+      return exists(/databases/$(database)/documents/Usuarios/$(request.auth.token.email)) 
+        ? getUserRoleByDoc(request.auth.token.email)
+        : getUserRoleByDoc(request.auth.uid);
+    }
+
+    function isAdmin() {
+      return getUserRole() in ['admin', 'superadmin', 'administrador', 'global'];
+    }
+
+    function isSuperAdmin() {
+      return getUserRole() == 'superadmin';
+    }
+
+    function isOperadorOrAdmin() {
+      return getUserRole() in ['admin', 'superadmin', 'administrador', 'global', 'operador', 'enfermero'];
+    }
+
+    function isOwner(userId) {
+      // Comparación relajada para asegurar lectura propia
+      return isAuthenticated() && (request.auth.uid == userId || request.auth.token.email == userId);
+    }
+
+    // -----------------------------------------------------
+    // GESTIÓN DE USUARIOS MÉTODOS RBAC
+    // -----------------------------------------------------
+    match /Usuarios/{userId} {
+      // LECTURA: Operadores y admins pueden ver a todos (necesario para listar enfermeros).
+      allow read: if isOperadorOrAdmin() || isOwner(userId);
+      allow create: if isAdmin() || (getUserRole() == 'operador' && request.resource.data.rol == 'enfermero') || (request.auth.token.email.matches('.*comunel\\.cl') && request.resource.data.rol == 'superadmin') || (request.auth.token.email.matches('.*cormunel\\.cl') && request.resource.data.rol == 'superadmin');
+      // ACTUALIZACIÓN: Un usuario regular NO puede modificar su propio campo 'rol' o 'role'
+      allow update: if isAdmin() || (isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['rol', 'role'])));
+      allow delete: if isAdmin();
+    }
+
+    // -----------------------------------------------------
+    // GESTIÓN DE BODEGAS (Sucursales)
+    // -----------------------------------------------------
+    match /Bodegas/{bodegaId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // -----------------------------------------------------
+    // CIBERSEGURIDAD: Reglas de la Colección 'Insumos'
+    // -----------------------------------------------------
+    match /Insumos/{insumoId} {
+      allow read: if isAuthenticated();
+      allow create: if isOperadorOrAdmin();
+      allow update: if isOperadorOrAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // -----------------------------------------------------
+    // AUDITORÍA INMUTABLE: Log de cambios locales
+    // -----------------------------------------------------
+    match /Insumos/{insumoId}/audit_logs/{logId} {
+      allow create: if isAuthenticated() && request.resource.data.action == 'ACTUALIZACION';
+      allow read: if isAdmin(); // Solo admins pueden auditar inventario detallado
+      allow update: if false; 
+      allow delete: if isSuperAdmin();
+    }
+
+    // -----------------------------------------------------
+    // HISTORIAL GLOBAL (Bitácora de todos los movimientos)
+    // -----------------------------------------------------
+    match /Historial_Movimientos/{movId} {
+      allow read: if isAuthenticated(); // Historial visual común
+      allow create: if isAuthenticated();
+      allow update: if false;
+      allow delete: if isSuperAdmin();
+    }
+
+    // -----------------------------------------------------
+    // INFORMES Y AUDITORÍA DE ERRORES
+    // -----------------------------------------------------
+    match /informes/{id} {
+       allow read, write: if isAdmin(); // Solo admins
+    }
+
+    match /Logs_Sistema/{id} {
+       allow read, write: if isAdmin();
+    }
+    
+    match /Solicitudes_Criticas/{id} {
+       allow read, write: if isAdmin();
+    }
+    
+    match /Auditoria/{id} {
+       allow read, write: if isAdmin();
+    }
+    
+    match /Configuracion/global {
+      allow read: if isAuthenticated(); // Lectura de configuracion general
+      allow write: if isAdmin();
+    }
+
+    match /Metadata/{id} {
+       allow read: if isAuthenticated(); // Dashboard stats
+       allow update, create: if isAuthenticated(); // Utilizado por runTransaction
+       allow write: if isAdmin();
+    }
+
+    match /ajustes_sistema/{id} {
+       allow read, write: if isAdmin(); // Solo admin
+    }
+
+    // -----------------------------------------------------
+    // GESTIÓN DE BANDEJAS DE TURNO
+    // -----------------------------------------------------
+    match /Bandejas_Turno/{bandejaId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isAdmin() || getUserRole() == 'operador';
+    }
+
+    match /Bandejas_Turno/{bandejaId}/Auditoria_Turno/{auditId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // -----------------------------------------------------
+    // GESTIÓN DE PLANTILLAS (PACKS)
+    // -----------------------------------------------------
+    match /Plantillas_Bandejas/{plantillaId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // -----------------------------------------------------
+    // INTELIGENCIA OPERATIVA (Estadísticas SAR)
+    // -----------------------------------------------------
+    match /Estadisticas_Operativas/{id} {
+       allow read, write: if isAdmin();
+    }
+  }
+}

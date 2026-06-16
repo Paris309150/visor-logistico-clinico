@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // -----------------------------------------------------
+    // GESTIÓN DE USUARIOS MÉTODOS RBAC
+    // -----------------------------------------------------
+    match /Usuarios/{userId} {
+      // Todo usuario autenticado puede leer roles (necesario para la UI)
+      allow read: if request.auth != null;
+      // Solo el rol de Administrador puede crear, modificar o eliminar usuarios
+      allow write: if request.auth != null 
+                   && get(/databases/$(database)/documents/Usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // -----------------------------------------------------
+    // GESTIÓN DE BODEGAS (Sucursales)
+    // -----------------------------------------------------
+    match /Bodegas/{bodegaId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null 
+                   && get(/databases/$(database)/documents/Usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // -----------------------------------------------------
+    // CIBERSEGURIDAD: Reglas de la Colección 'Insumos'
+    // -----------------------------------------------------
+    match /Insumos/{insumoId} {
+      
+      // Permitimos lectura a usuarios autenticados
+      allow read: if request.auth != null;
+      
+      // Permitimos CREACIÓN solo a administradores
+      allow create: if request.auth != null
+                    && get(/databases/$(database)/documents/Usuarios/$(request.auth.uid)).data.role == 'admin';
+
+      // DOBLE VALIDACIÓN (Backend):
+      // 1. El stock final jamás puede ser negativo (quiebre de inventario)
+      // 2. Protegemos el Schema Forzando el tipado de datos nativo
+      allow update: if request.auth != null
+                    // Bloqueo estricto de números negativos
+                    && request.resource.data.quantity >= 0
+                    // Schema Constraint: quantity debe ser Int/Float
+                    && request.resource.data.quantity is number
+                    // Opcional: garantizar que el campo criticalLimit mantenga su forma o no baje de 0
+                    && (!("criticalLimit" in request.resource.data) || request.resource.data.criticalLimit >= 0);
+                    
+      // -----------------------------------------------------
+      // SEGURIDAD BACKEND RBAC: Protección estricta de borrado
+      // -----------------------------------------------------
+      allow delete: if request.auth != null
+                    && get(/databases/$(database)/documents/Usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // -----------------------------------------------------
+    // AUDITORÍA INMUTABLE: Log de cambios locales
+    // -----------------------------------------------------
+    match /Insumos/{insumoId}/audit_logs/{logId} {
+      // Regla de "Append-Only" (Solo escritura, inmutable)
+      allow create: if request.auth != null
+                    // Prevenir spoofing: El usuario solo puede registrar acciones con su propia UID
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.action == 'ACTUALIZACION';
+      
+      // Prohibido alterar el log de auditoría
+      allow update, delete: if false; 
+    }
+
+    // -----------------------------------------------------
+    // HISTORIAL GLOBAL (Bitácora de todos los movimientos)
+    // -----------------------------------------------------
+    match /Historial_Movimientos/{movId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    // Verificamos matemáticamente el reflejo del movimiento base
+                     && request.resource.data.quantity > 0;
+      
+      // El historial global jamás se altera
+      allow update, delete: if false;
+    }
+
+    // -----------------------------------------------------
+    // INFORMES Y AUDITORÍA DE ERRORES (ACCESO ADMIN)
+    // -----------------------------------------------------
+    match /informes/{id} {
+       allow read, write: if request.auth != null 
+                    && get(/databases/$(database)/documents/Usuarios/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}
