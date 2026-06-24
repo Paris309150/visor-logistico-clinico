@@ -86,3 +86,11 @@ firebase serve
 ## ✍️ Créditos y Propósito
 
 Este sistema ha sido desarrollado a medida para optimizar la cadena de suministro logístico-clínico, priorizando la **velocidad de operación**, la **integridad y seguridad de los datos sensibles**, y ofreciendo una **experiencia de usuario interactiva y sumamente moderna**. Un recurso diseñado para salvar tiempo administrativo y evitar fugas de información.
+
+---
+
+## 📄 Propiedad y Derechos de Uso
+
+⚠️ **Aviso Importante**: Este repositorio y todo su código fuente son de **propiedad exclusiva y uso restringido** (Código Cerrado / Proprietary). 
+
+El código expuesto aquí tiene como **único propósito mostrar el avance y el trabajo en desarrollo** del proyecto. **NO está permitido** su copia, distribución, modificación, ni uso comercial o personal sin la autorización expresa de los autores. Todos los derechos reservados.

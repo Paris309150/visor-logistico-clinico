@@ -13,7 +13,7 @@ try {
 
 async function run() {
   try {
-    const user = await getAuth().getUserByEmail('catherine.oviedo@cormumel.cl');
+    const user = await getAuth().getUserByEmail('somesar.aera@cormumel.cl');
     await getAuth().updateUser(user.uid, { password: 'Cormu2335*' });
     console.log('Successfully updated user', user.uid);
     process.exit(0);
